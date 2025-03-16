@@ -46,6 +46,12 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, options);
   SwaggerModule.setup('docs', app, document);
 
+  app.enableCors({
+    origin: ['https://menutraining.com', 'http://localhost:3000'], // Add your frontend URL and local development URL
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: true,
+  });
+
   await app.listen(configService.getOrThrow('app.port', { infer: true }));
 }
 void bootstrap();
