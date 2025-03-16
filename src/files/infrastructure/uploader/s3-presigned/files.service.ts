@@ -5,7 +5,6 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { FileRepository } from '../../persistence/file.repository';
-
 import { FileUploadDto } from './dto/file.dto';
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
@@ -16,7 +15,6 @@ import { FileType } from '../../../domain/file';
 @Injectable()
 export class FilesS3PresignedService {
   private s3: S3Client;
-
   constructor(
     private readonly fileRepository: FileRepository,
     private readonly configService: ConfigService,
@@ -73,13 +71,21 @@ export class FilesS3PresignedService {
       .pop()
       ?.toLowerCase()}`;
 
+    // Create the command for generating a presigned URL
+    // Note: presigned PUT URLs don't support ACL in the URL, we'll need to set this
+    // in the bucket policy or when the file is actually uploaded
     const command = new PutObjectCommand({
       Bucket: this.configService.getOrThrow('file.awsDefaultS3Bucket', {
         infer: true,
       }),
       Key: key,
       ContentLength: file.fileSize,
+      // If public access is enabled, add ACL header
+      ACL: this.configService.get('file.awsS3PublicAccess', { infer: true })
+        ? 'public-read'
+        : undefined,
     });
+
     const signedUrl = await getSignedUrl(this.s3, command, { expiresIn: 3600 });
     const data = await this.fileRepository.create({
       path: key,
