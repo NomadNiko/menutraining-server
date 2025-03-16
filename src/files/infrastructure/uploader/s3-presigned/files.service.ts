@@ -71,19 +71,14 @@ export class FilesS3PresignedService {
       .pop()
       ?.toLowerCase()}`;
 
-    // Create the command for generating a presigned URL
-    // Note: presigned PUT URLs don't support ACL in the URL, we'll need to set this
-    // in the bucket policy or when the file is actually uploaded
+    // Create the command for generating a presigned URL without ACL
     const command = new PutObjectCommand({
       Bucket: this.configService.getOrThrow('file.awsDefaultS3Bucket', {
         infer: true,
       }),
       Key: key,
       ContentLength: file.fileSize,
-      // If public access is enabled, add ACL header
-      ACL: this.configService.get('file.awsS3PublicAccess', { infer: true })
-        ? 'public-read'
-        : undefined,
+      // Remove ACL
     });
 
     const signedUrl = await getSignedUrl(this.s3, command, { expiresIn: 3600 });

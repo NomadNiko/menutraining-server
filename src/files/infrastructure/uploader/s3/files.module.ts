@@ -62,10 +62,7 @@ const infrastructurePersistenceModule = (databaseConfig() as DatabaseConfig)
               infer: true,
             }),
             contentType: multerS3.AUTO_CONTENT_TYPE,
-            // Set ACL to public-read if the bucket is configured for public access
-            acl: configService.get('file.awsS3PublicAccess', { infer: true })
-              ? 'public-read'
-              : undefined,
+            // Remove ACL option since ACLs are not supported
             key: (request, file, callback) => {
               callback(
                 null,
@@ -84,7 +81,7 @@ const infrastructurePersistenceModule = (databaseConfig() as DatabaseConfig)
     }),
   ],
   controllers: [FilesS3Controller],
-  providers: [FilesS3Service],
+  providers: [ConfigService, FilesS3Service],
   exports: [FilesS3Service],
 })
 export class FilesS3Module {}

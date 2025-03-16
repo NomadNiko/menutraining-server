@@ -3,8 +3,6 @@ import { Allow } from 'class-validator';
 import { Transform } from 'class-transformer';
 import fileConfig from '../config/file.config';
 import { FileConfig, FileDriver } from '../config/file-config.type';
-import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { AppConfig } from '../../config/app-config.type';
 import appConfig from '../../config/app.config';
 
@@ -26,47 +24,18 @@ export class FileType {
       if ((fileConfig() as FileConfig).driver === FileDriver.LOCAL) {
         return (appConfig() as AppConfig).backendDomain + value;
       }
-      // Handle S3 files with public access
-      else if ((fileConfig() as FileConfig).driver === FileDriver.S3) {
-        // If the bucket is configured for public access, return a direct S3 URL
-        if ((fileConfig() as FileConfig).awsS3PublicAccess) {
-          const bucketName =
-            (fileConfig() as FileConfig).awsDefaultS3Bucket ?? '';
-          const region = (fileConfig() as FileConfig).awsS3Region ?? '';
-          return `https://${bucketName}.s3.${region}.amazonaws.com/${value}`;
-        }
-
-        // Otherwise, use presigned URLs as before
-        const s3 = new S3Client({
-          region: (fileConfig() as FileConfig).awsS3Region ?? '',
-          credentials: {
-            accessKeyId: (fileConfig() as FileConfig).accessKeyId ?? '',
-            secretAccessKey: (fileConfig() as FileConfig).secretAccessKey ?? '',
-          },
-        });
-        const command = new GetObjectCommand({
-          Bucket: (fileConfig() as FileConfig).awsDefaultS3Bucket ?? '',
-          Key: value,
-        });
-        return getSignedUrl(s3, command, { expiresIn: 3600 });
-      }
-      // Handle S3 presigned URLs
+      // For S3 and S3_PRESIGNED, use the direct URL format
       else if (
-        (fileConfig() as FileConfig).driver === FileDriver.S3_PRESIGNED
+        [FileDriver.S3, FileDriver.S3_PRESIGNED].includes(
+          (fileConfig() as FileConfig).driver,
+        )
       ) {
-        const s3 = new S3Client({
-          region: (fileConfig() as FileConfig).awsS3Region ?? '',
-          credentials: {
-            accessKeyId: (fileConfig() as FileConfig).accessKeyId ?? '',
-            secretAccessKey: (fileConfig() as FileConfig).secretAccessKey ?? '',
-          },
-        });
-        const command = new GetObjectCommand({
-          Bucket: (fileConfig() as FileConfig).awsDefaultS3Bucket ?? '',
-          Key: value,
-        });
-        return getSignedUrl(s3, command, { expiresIn: 3600 });
+        const bucketName =
+          (fileConfig() as FileConfig).awsDefaultS3Bucket ?? '';
+        const region = (fileConfig() as FileConfig).awsS3Region ?? '';
+        return `https://${bucketName}.s3.${region}.amazonaws.com/${value}`;
       }
+
       return value;
     },
     {
