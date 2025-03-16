@@ -16,6 +16,9 @@ export class MenuItemSchemaClass extends EntityDocumentHelper {
   @Prop({ required: true, unique: true })
   menuItemId: string;
 
+  @Prop({ required: true })
+  menuItemName: string;
+
   @Prop()
   menuItemDescription: string;
 

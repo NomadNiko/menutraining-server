@@ -3,6 +3,14 @@ import { IsArray, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateMenuItemDto {
   @ApiProperty({
+    description: 'Menu item name',
+    example: 'Nikos Chocolate Cake',
+  })
+  @IsString()
+  @IsOptional()
+  menuItemName: string;
+
+  @ApiProperty({
     description: 'Menu item description',
     example: 'Delicious chocolate cake with vanilla frosting',
   })
