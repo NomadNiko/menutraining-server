@@ -1,6 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { now, HydratedDocument } from 'mongoose';
-
 import { AuthProvidersEnum } from '../../../../../auth/auth-providers.enum';
 import { FileSchemaClass } from '../../../../../files/infrastructure/persistence/document/entities/file.schema';
 import { EntityDocumentHelper } from '../../../../../utils/document-entity-helper';
@@ -62,6 +61,9 @@ export class UserSchemaClass extends EntityDocumentHelper {
   })
   status?: StatusSchema;
 
+  @Prop({ type: [String], default: [] })
+  associatedRestaurants: string[];
+
   @Prop({ default: now })
   createdAt: Date;
 
@@ -73,5 +75,5 @@ export class UserSchemaClass extends EntityDocumentHelper {
 }
 
 export const UserSchema = SchemaFactory.createForClass(UserSchemaClass);
-
 UserSchema.index({ 'role._id': 1 });
+UserSchema.index({ associatedRestaurants: 1 });

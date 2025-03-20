@@ -69,6 +69,13 @@ export class User {
   })
   status?: Status;
 
+  @ApiProperty({
+    type: [String],
+    example: ['RST-000001', 'RST-000002'],
+  })
+  @Expose({ groups: ['me', 'admin'] })
+  associatedRestaurants?: string[];
+
   @ApiProperty()
   createdAt: Date;
 

@@ -1,3 +1,4 @@
+// ./menutraining-server/src/users/dto/create-user.dto.ts
 import {
   // decorators here
   Transform,
@@ -6,9 +7,11 @@ import {
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   // decorators here
+  IsArray,
   IsEmail,
   IsNotEmpty,
   IsOptional,
+  IsString,
   MinLength,
 } from 'class-validator';
 import { FileDto } from '../../files/dto/file.dto';
@@ -52,4 +55,14 @@ export class CreateUserDto {
   @IsOptional()
   @Type(() => StatusDto)
   status?: StatusDto;
+
+  @ApiPropertyOptional({
+    type: [String],
+    example: ['RST-000001'],
+    description: 'List of restaurant IDs the user is associated with',
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  associatedRestaurants?: string[];
 }

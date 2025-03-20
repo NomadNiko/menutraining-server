@@ -1,3 +1,4 @@
+// ./menutraining-server/src/users/users.service.ts
 import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { NullableType } from '../utils/types/nullable.type';
@@ -73,5 +74,55 @@ export class UsersService {
 
   async remove(id: User['id']): Promise<void> {
     await this.userDeleteService.remove(id);
+  }
+
+  async associateWithRestaurant(
+    userId: User['id'],
+    restaurantId: string,
+  ): Promise<User | null> {
+    const user = await this.findById(userId);
+    if (!user) {
+      return null;
+    }
+
+    if (!user.associatedRestaurants) {
+      user.associatedRestaurants = [];
+    }
+
+    if (!user.associatedRestaurants.includes(restaurantId)) {
+      user.associatedRestaurants.push(restaurantId);
+      return this.update(userId, {
+        associatedRestaurants: user.associatedRestaurants,
+      });
+    }
+
+    return user;
+  }
+
+  async removeFromRestaurant(
+    userId: User['id'],
+    restaurantId: string,
+  ): Promise<User | null> {
+    const user = await this.findById(userId);
+    if (!user || !user.associatedRestaurants) {
+      return null;
+    }
+
+    user.associatedRestaurants = user.associatedRestaurants.filter(
+      (id) => id !== restaurantId,
+    );
+
+    return this.update(userId, {
+      associatedRestaurants: user.associatedRestaurants,
+    });
+  }
+
+  async hasRole(userId: User['id'], roleId: number): Promise<boolean> {
+    const user = await this.findById(userId);
+    if (!user || !user.role) {
+      return false;
+    }
+
+    return String(user.role.id) === String(roleId);
   }
 }
