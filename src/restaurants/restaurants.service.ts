@@ -212,14 +212,26 @@ export class RestaurantsService {
     const restaurant = await this.restaurantModel
       .findOne({ restaurantId })
       .exec();
-
     if (!restaurant) {
       throw new NotFoundException(
         `Restaurant with ID "${restaurantId}" not found`,
       );
     }
 
-    return this.usersService.findByIds(restaurant.associatedUsers);
+    // Get the users first
+    const users = await this.usersService.findByIds(restaurant.associatedUsers);
+
+    // Transform the response to only include the fields we need
+    return users.map((user) => ({
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      photo: user.photo,
+      role: {
+        id: user.role?.id,
+      },
+    }));
   }
 
   async checkUserRestaurantAccess(
