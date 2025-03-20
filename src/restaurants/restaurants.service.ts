@@ -45,13 +45,15 @@ export class RestaurantsService {
   ) {
     const { page = 1, limit = 10, name } = queryDto;
     const filter: any = {};
-
     if (name) {
       filter.name = { $regex: name, $options: 'i' };
     }
 
+    // Fix the role comparison logic for admin access
+    const isAdmin = String(userRole) === String(RoleEnum.admin);
+
     // If not an admin, only show restaurants they're associated with
-    if (userRole !== RoleEnum[RoleEnum.admin].toString()) {
+    if (!isAdmin) {
       const user = await this.usersService.findById(userId);
       if (
         user &&
