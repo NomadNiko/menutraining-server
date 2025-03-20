@@ -111,16 +111,6 @@ export class RestaurantsService {
       throw new NotFoundException(`Restaurant with ID "${id}" not found`);
     }
 
-    // Permission check: only admin or associated users with manager role
-    if (userRole !== RoleEnum[RoleEnum.admin].toString()) {
-      const hasAccess = restaurant.associatedUsers.includes(userId);
-      if (!hasAccess) {
-        throw new ForbiddenException(
-          'You do not have permission to update this restaurant',
-        );
-      }
-    }
-
     const updatedRestaurant = await this.restaurantModel
       .findByIdAndUpdate(id, updateRestaurantDto, { new: true })
       .exec();
@@ -139,11 +129,6 @@ export class RestaurantsService {
 
     if (!restaurant) {
       throw new NotFoundException(`Restaurant with ID "${id}" not found`);
-    }
-
-    // Permission check: only admin can delete restaurants
-    if (userRole !== RoleEnum[RoleEnum.admin].toString()) {
-      throw new ForbiddenException('Only admins can delete restaurants');
     }
 
     // Remove all associations
@@ -169,22 +154,6 @@ export class RestaurantsService {
       throw new NotFoundException(
         `Restaurant with ID "${restaurantId}" not found`,
       );
-    }
-
-    // Permission check: admin can add anyone, managers can only add if they're associated
-    if (userRole !== RoleEnum[RoleEnum.admin].toString()) {
-      const isManager = await this.usersService.hasRole(
-        requestingUserId,
-        RoleEnum.manager,
-      );
-      const isAssociated =
-        restaurant.associatedUsers.includes(requestingUserId);
-
-      if (!isManager || !isAssociated) {
-        throw new ForbiddenException(
-          'Only admins or managers associated with this restaurant can add users',
-        );
-      }
     }
 
     // Check if user is already associated
@@ -218,22 +187,6 @@ export class RestaurantsService {
       );
     }
 
-    // Permission check: admin can remove anyone, managers can only remove if they're associated
-    if (userRole !== RoleEnum[RoleEnum.admin].toString()) {
-      const isManager = await this.usersService.hasRole(
-        requestingUserId,
-        RoleEnum.manager,
-      );
-      const isAssociated =
-        restaurant.associatedUsers.includes(requestingUserId);
-
-      if (!isManager || !isAssociated) {
-        throw new ForbiddenException(
-          'Only admins or managers associated with this restaurant can remove users',
-        );
-      }
-    }
-
     // Prevent removal of creator/owner
     if (restaurant.createdBy === userToRemoveId) {
       throw new ForbiddenException('Cannot remove the restaurant creator');
@@ -264,18 +217,6 @@ export class RestaurantsService {
       throw new NotFoundException(
         `Restaurant with ID "${restaurantId}" not found`,
       );
-    }
-
-    // Permission check: admin can see any restaurant's users, others must be associated
-    if (userRole !== RoleEnum[RoleEnum.admin].toString()) {
-      const isAssociated =
-        restaurant.associatedUsers.includes(requestingUserId);
-
-      if (!isAssociated) {
-        throw new ForbiddenException(
-          'You do not have permission to view users for this restaurant',
-        );
-      }
     }
 
     return this.usersService.findByIds(restaurant.associatedUsers);
