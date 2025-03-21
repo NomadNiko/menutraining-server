@@ -22,19 +22,13 @@ export class RestaurantsService {
 
   async create(createRestaurantDto: CreateRestaurantDto, userId: string) {
     const restaurantId = await this.generateRestaurantId();
-
     const createdRestaurant = new this.restaurantModel({
       ...createRestaurantDto,
       restaurantId,
       createdBy: userId,
       associatedUsers: [userId], // Automatically associate creator
     });
-
     const savedRestaurant = await createdRestaurant.save();
-
-    // Update user's associatedRestaurants
-    await this.usersService.associateWithRestaurant(userId, restaurantId);
-
     return savedRestaurant.toJSON();
   }
 
@@ -49,21 +43,13 @@ export class RestaurantsService {
       filter.name = { $regex: name, $options: 'i' };
     }
 
-    // Fix the role comparison logic for admin access
+    // Check if user is admin
     const isAdmin = String(userRole) === String(RoleEnum.admin);
 
     // If not an admin, only show restaurants they're associated with
     if (!isAdmin) {
-      const user = await this.usersService.findById(userId);
-      if (
-        user &&
-        user.associatedRestaurants &&
-        user.associatedRestaurants.length > 0
-      ) {
-        filter.restaurantId = { $in: user.associatedRestaurants };
-      } else {
-        return []; // No associated restaurants
-      }
+      // Filter restaurants where this user is in the associatedUsers array
+      filter.associatedUsers = userId;
     }
 
     const restaurants = await this.restaurantModel
@@ -77,11 +63,9 @@ export class RestaurantsService {
 
   async findOne(id: string) {
     const restaurant = await this.restaurantModel.findById(id).exec();
-
     if (!restaurant) {
       throw new NotFoundException(`Restaurant with ID "${id}" not found`);
     }
-
     return restaurant.toJSON();
   }
 
@@ -89,13 +73,11 @@ export class RestaurantsService {
     const restaurant = await this.restaurantModel
       .findOne({ restaurantId })
       .exec();
-
     if (!restaurant) {
       throw new NotFoundException(
         `Restaurant with ID "${restaurantId}" not found`,
       );
     }
-
     return restaurant.toJSON();
   }
 
@@ -106,37 +88,25 @@ export class RestaurantsService {
     userRole: string,
   ) {
     const restaurant = await this.restaurantModel.findById(id).exec();
-
     if (!restaurant) {
       throw new NotFoundException(`Restaurant with ID "${id}" not found`);
     }
-
     const updatedRestaurant = await this.restaurantModel
       .findByIdAndUpdate(id, updateRestaurantDto, { new: true })
       .exec();
-
     if (!updatedRestaurant) {
       throw new NotFoundException(
         `Restaurant with ID "${id}" not found after update`,
       );
     }
-
     return updatedRestaurant.toJSON();
   }
 
   async remove(id: string, userId: string, userRole: string) {
     const restaurant = await this.restaurantModel.findById(id).exec();
-
     if (!restaurant) {
       throw new NotFoundException(`Restaurant with ID "${id}" not found`);
     }
-
-    // Remove all associations
-    const restaurantId = restaurant.restaurantId;
-    for (const userId of restaurant.associatedUsers) {
-      await this.usersService.removeFromRestaurant(userId, restaurantId);
-    }
-
     await this.restaurantModel.findByIdAndDelete(id).exec();
   }
 
@@ -149,25 +119,18 @@ export class RestaurantsService {
     const restaurant = await this.restaurantModel
       .findOne({ restaurantId })
       .exec();
-
     if (!restaurant) {
       throw new NotFoundException(
         `Restaurant with ID "${restaurantId}" not found`,
       );
     }
-
     // Check if user is already associated
     if (restaurant.associatedUsers.includes(userToAddId)) {
       return restaurant.toJSON(); // Already associated
     }
-
     // Add association
     restaurant.associatedUsers.push(userToAddId);
     await restaurant.save();
-
-    // Update user's associatedRestaurants
-    await this.usersService.associateWithRestaurant(userToAddId, restaurantId);
-
     return restaurant.toJSON();
   }
 
@@ -180,27 +143,20 @@ export class RestaurantsService {
     const restaurant = await this.restaurantModel
       .findOne({ restaurantId })
       .exec();
-
     if (!restaurant) {
       throw new NotFoundException(
         `Restaurant with ID "${restaurantId}" not found`,
       );
     }
-
     // Prevent removal of creator/owner
     if (restaurant.createdBy === userToRemoveId) {
       throw new ForbiddenException('Cannot remove the restaurant creator');
     }
-
     // Remove association
     restaurant.associatedUsers = restaurant.associatedUsers.filter(
       (id) => id !== userToRemoveId,
     );
     await restaurant.save();
-
-    // Update user's associatedRestaurants
-    await this.usersService.removeFromRestaurant(userToRemoveId, restaurantId);
-
     return restaurant.toJSON();
   }
 
@@ -217,10 +173,8 @@ export class RestaurantsService {
         `Restaurant with ID "${restaurantId}" not found`,
       );
     }
-
     // Get the users first
     const users = await this.usersService.findByIds(restaurant.associatedUsers);
-
     // Transform the response to only include the fields we need
     return users.map((user) => ({
       id: user.id,
@@ -243,14 +197,12 @@ export class RestaurantsService {
     if (userRole === RoleEnum[RoleEnum.admin].toString()) {
       return true;
     }
-
     const restaurant = await this.restaurantModel
       .findOne({ restaurantId })
       .exec();
     if (!restaurant) {
       return false;
     }
-
     return restaurant.associatedUsers.includes(userId);
   }
 
@@ -259,15 +211,12 @@ export class RestaurantsService {
       .findOne({}, { restaurantId: 1 })
       .sort({ restaurantId: -1 })
       .exec();
-
     if (!lastRestaurant) {
       return 'RST-000001';
     }
-
     const lastId = lastRestaurant.restaurantId;
     const numericPart = parseInt(lastId.substring(4), 10);
     const newNumericPart = numericPart + 1;
-
     return `RST-${newNumericPart.toString().padStart(6, '0')}`;
   }
 }

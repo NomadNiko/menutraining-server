@@ -19,8 +19,8 @@ export class CreateRestaurantDto {
   description?: string;
 
   @ApiPropertyOptional({
-    description: 'Restaurant address',
-    example: '123 Main St, Anytown, USA',
+    description: 'Restaurant Location',
+    example: 'Atlanta, GA',
   })
   @IsString()
   @IsOptional()
