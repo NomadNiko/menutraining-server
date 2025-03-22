@@ -1,4 +1,3 @@
-// ./menutraining-server/src/menu-items/menu-items.service.ts
 import {
   Injectable,
   NotFoundException,
@@ -14,6 +13,7 @@ import { RestaurantsService } from '../restaurants/restaurants.service';
 import { RoleEnum } from '../roles/roles.enum';
 import { IngredientSchemaClass } from '../ingredients/ingredient.schema';
 import { AllergySchemaClass } from '../allergies/allergy.schema';
+import { IngredientsService } from '../ingredients/ingredients.service';
 
 @Injectable()
 export class MenuItemsService {
@@ -25,6 +25,7 @@ export class MenuItemsService {
     @InjectModel(AllergySchemaClass.name)
     private allergyModel: Model<AllergySchemaClass>,
     private restaurantsService: RestaurantsService,
+    private ingredientsService: IngredientsService,
   ) {}
 
   async create(
@@ -88,13 +89,11 @@ export class MenuItemsService {
         filter.restaurantId = { $in: user.associatedRestaurants };
       }
     }
-
     const menuItems = await this.menuItemModel
       .find(filter)
       .skip((page - 1) * limit)
       .limit(limit)
       .exec();
-
     // Enhance menu items with ingredient names and allergies
     return await this.enhanceMenuItems(menuItems);
   }
@@ -117,7 +116,6 @@ export class MenuItemsService {
         );
       }
     }
-
     // Enhance menu item with ingredient names and allergies
     const enhancedItems = await this.enhanceMenuItems([menuItem]);
     return enhancedItems[0];
@@ -143,7 +141,6 @@ export class MenuItemsService {
         );
       }
     }
-
     // Enhance menu item with ingredient names and allergies
     const enhancedItems = await this.enhanceMenuItems([menuItem]);
     return enhancedItems[0];
@@ -187,7 +184,6 @@ export class MenuItemsService {
         `Menu item with ID "${id}" not found after update`,
       );
     }
-
     // Enhance the updated menu item with ingredient names and allergies
     const enhancedItems = await this.enhanceMenuItems([updatedMenuItem]);
     return enhancedItems[0];
@@ -236,15 +232,25 @@ export class MenuItemsService {
     const ingredientMap: Record<string, string> = {};
     const ingredientToAllergiesMap: Record<string, string[]> = {};
 
-    ingredients.forEach((ingredient) => {
+    // Get all allergy IDs including those derived from sub-ingredients
+    for (const ingredient of ingredients) {
       ingredientMap[ingredient.ingredientId] = ingredient.ingredientName;
-      ingredientToAllergiesMap[ingredient.ingredientId] =
-        ingredient.ingredientAllergies || [];
-    });
 
-    // Get all unique allergy IDs from all ingredients
+      // Get all allergies including those derived from sub-ingredients
+      const allAllergies = await this.ingredientsService.getAllAllergies(
+        ingredient.ingredientId,
+      );
+
+      ingredientToAllergiesMap[ingredient.ingredientId] = allAllergies;
+    }
+
+    // Collect all unique allergy IDs across all ingredients
     const allergyIds = Array.from(
-      new Set(ingredients.flatMap((ing) => ing.ingredientAllergies || [])),
+      new Set(
+        Object.values(ingredientToAllergiesMap).flatMap(
+          (allergies) => allergies,
+        ),
+      ),
     );
 
     // Fetch allergy details if there are any
@@ -253,7 +259,6 @@ export class MenuItemsService {
       const allergies = await this.allergyModel
         .find({ allergyId: { $in: allergyIds } })
         .exec();
-
       allergyMap = allergies.reduce(
         (map, allergy) => {
           map[allergy.allergyId] = allergy.allergyName;
@@ -294,7 +299,6 @@ export class MenuItemsService {
       });
 
       menuItemObj.allergies = allergiesList;
-
       return menuItemObj;
     });
   }

@@ -1,4 +1,3 @@
-// ./menutraining-server/src/menu-items/menu-items.module.ts
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { MenuItemsService } from './menu-items.service';
@@ -10,6 +9,7 @@ import {
   IngredientSchemaClass,
 } from '../ingredients/ingredient.schema';
 import { AllergySchema, AllergySchemaClass } from '../allergies/allergy.schema';
+import { IngredientsModule } from '../ingredients/ingredients.module';
 
 @Module({
   imports: [
@@ -19,6 +19,7 @@ import { AllergySchema, AllergySchemaClass } from '../allergies/allergy.schema';
       { name: AllergySchemaClass.name, schema: AllergySchema },
     ]),
     RestaurantsModule,
+    IngredientsModule,
   ],
   controllers: [MenuItemsController],
   providers: [MenuItemsService],
