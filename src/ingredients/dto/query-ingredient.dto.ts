@@ -1,4 +1,3 @@
-// ./menutraining-server/src/ingredients/dto/query-ingredient.dto.ts
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsString } from 'class-validator';
 import { Transform } from 'class-transformer';
@@ -19,6 +18,14 @@ export class QueryIngredientDto {
   @IsString()
   @IsOptional()
   allergyId?: string;
+
+  @ApiPropertyOptional({
+    description: 'Filter by category',
+    example: 'Vegetables',
+  })
+  @IsString()
+  @IsOptional()
+  category?: string;
 
   @ApiPropertyOptional({
     description: 'Filter by restaurant ID',

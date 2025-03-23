@@ -1,4 +1,3 @@
-// ./menutraining-server/src/ingredients/dto/create-ingredient.dto.ts
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsArray, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
@@ -37,6 +36,15 @@ export class CreateIngredientDto {
   @IsString({ each: true })
   @IsOptional()
   subIngredients?: string[];
+
+  @ApiProperty({
+    description: 'List of categories for this ingredient',
+    example: ['Vegetables', 'Basic'],
+    type: [String],
+  })
+  @IsArray()
+  @IsString({ each: true })
+  categories: string[];
 
   @ApiProperty({
     description: 'Restaurant ID this ingredient belongs to',

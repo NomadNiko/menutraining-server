@@ -1,3 +1,5 @@
+// ./menutraining-server/src/ingredients/ingredients.service.ts
+
 import {
   Injectable,
   NotFoundException,
@@ -48,13 +50,23 @@ export class IngredientsService {
     userId: string,
     userRole: string,
   ) {
-    const { page = 1, limit = 10, name, allergyId, restaurantId } = queryDto;
+    const {
+      page = 1,
+      limit = 10,
+      name,
+      allergyId,
+      category,
+      restaurantId,
+    } = queryDto;
     const filter: any = {};
     if (name) {
       filter.ingredientName = { $regex: name, $options: 'i' };
     }
     if (allergyId) {
       filter.ingredientAllergies = allergyId;
+    }
+    if (category) {
+      filter.categories = category;
     }
     // If restaurantId is provided, filter by it
     if (restaurantId) {
@@ -93,7 +105,6 @@ export class IngredientsService {
       .skip((page - 1) * limit)
       .limit(limit)
       .exec();
-
     // Enhance ingredients with derived allergies
     const enhancedIngredients = await Promise.all(
       ingredients.map(async (ingredient) => {
@@ -109,7 +120,6 @@ export class IngredientsService {
         };
       }),
     );
-
     return enhancedIngredients;
   }
 
@@ -131,12 +141,10 @@ export class IngredientsService {
         );
       }
     }
-
     // Get derived allergies
     const derivedAllergies = await this.getAllDerivedAllergies(
       ingredient.ingredientId,
     );
-
     const ingredientObj = ingredient.toJSON();
     return {
       ...ingredientObj,
@@ -172,12 +180,10 @@ export class IngredientsService {
         );
       }
     }
-
     // Get derived allergies
     const derivedAllergies = await this.getAllDerivedAllergies(
       ingredient.ingredientId,
     );
-
     const ingredientObj = ingredient.toJSON();
     return {
       ...ingredientObj,
@@ -225,12 +231,10 @@ export class IngredientsService {
         `Ingredient with ID "${id}" not found after update`,
       );
     }
-
     // Get derived allergies
     const derivedAllergies = await this.getAllDerivedAllergies(
       updatedIngredient.ingredientId,
     );
-
     const ingredientObj = updatedIngredient.toJSON();
     return {
       ...ingredientObj,
@@ -274,10 +278,8 @@ export class IngredientsService {
     if (visitedIngredients.has(ingredientId)) {
       return [];
     }
-
     // Mark this ingredient as visited
     visitedIngredients.add(ingredientId);
-
     // Get the ingredient
     const ingredient = await this.ingredientModel
       .findOne({ ingredientId })
@@ -285,10 +287,8 @@ export class IngredientsService {
     if (!ingredient) {
       return [];
     }
-
     // Start with direct allergies
     const allergies = [...ingredient.ingredientAllergies];
-
     // Add allergies from sub-ingredients
     if (ingredient.subIngredients && ingredient.subIngredients.length > 0) {
       for (const subIngredientId of ingredient.subIngredients) {
@@ -304,7 +304,6 @@ export class IngredientsService {
         });
       }
     }
-
     return allergies;
   }
 
@@ -318,11 +317,9 @@ export class IngredientsService {
     const ingredient = await this.ingredientModel
       .findOne({ ingredientId })
       .exec();
-
     if (!ingredient) {
       return allAllergies;
     }
-
     // Filter out direct allergies to get only derived ones
     return allAllergies.filter(
       (allergyId) => !ingredient.ingredientAllergies.includes(allergyId),

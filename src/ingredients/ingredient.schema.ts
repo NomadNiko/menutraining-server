@@ -1,4 +1,3 @@
-// ./menutraining-server/src/ingredients/ingredient.schema.ts
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 import { EntityDocumentHelper } from '../utils/document-entity-helper';
@@ -29,6 +28,9 @@ export class IngredientSchemaClass extends EntityDocumentHelper {
   @Prop({ type: [String], default: [] })
   subIngredients: string[];
 
+  @Prop({ type: [String], default: [] })
+  categories: string[];
+
   @Prop({ required: true })
   restaurantId: string;
 }
@@ -36,4 +38,5 @@ export class IngredientSchemaClass extends EntityDocumentHelper {
 export const IngredientSchema = SchemaFactory.createForClass(
   IngredientSchemaClass,
 );
+
 IngredientSchema.index({ restaurantId: 1 });
