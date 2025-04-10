@@ -1,5 +1,4 @@
 // ./menutraining-server/src/ingredients/ingredients.service.ts
-
 import {
   Injectable,
   NotFoundException,
@@ -13,6 +12,12 @@ import { UpdateIngredientDto } from './dto/update-ingredient.dto';
 import { QueryIngredientDto } from './dto/query-ingredient.dto';
 import { RestaurantsService } from '../restaurants/restaurants.service';
 import { RoleEnum } from '../roles/roles.enum';
+
+// Add interface for sub-ingredient details
+interface SubIngredientDetail {
+  id: string;
+  name: string;
+}
 
 @Injectable()
 export class IngredientsService {
@@ -105,11 +110,15 @@ export class IngredientsService {
       .skip((page - 1) * limit)
       .limit(limit)
       .exec();
-    // Enhance ingredients with derived allergies
+
+    // Enhance ingredients with derived allergies and sub-ingredient details
     const enhancedIngredients = await Promise.all(
       ingredients.map(async (ingredient) => {
         const ingredientObj = ingredient.toJSON();
         const derivedAllergies = await this.getAllDerivedAllergies(
+          ingredient.ingredientId,
+        );
+        const subIngredientDetails = await this.getSubIngredientDetails(
           ingredient.ingredientId,
         );
         return {
@@ -117,9 +126,11 @@ export class IngredientsService {
           derivedAllergies: derivedAllergies.filter(
             (allergyId) => !ingredient.ingredientAllergies.includes(allergyId),
           ),
+          subIngredientDetails,
         };
       }),
     );
+
     return enhancedIngredients;
   }
 
@@ -141,16 +152,21 @@ export class IngredientsService {
         );
       }
     }
-    // Get derived allergies
+    // Get derived allergies and sub-ingredient details
     const derivedAllergies = await this.getAllDerivedAllergies(
       ingredient.ingredientId,
     );
+    const subIngredientDetails = await this.getSubIngredientDetails(
+      ingredient.ingredientId,
+    );
+
     const ingredientObj = ingredient.toJSON();
     return {
       ...ingredientObj,
       derivedAllergies: derivedAllergies.filter(
         (allergyId) => !ingredient.ingredientAllergies.includes(allergyId),
       ),
+      subIngredientDetails,
     };
   }
 
@@ -180,16 +196,21 @@ export class IngredientsService {
         );
       }
     }
-    // Get derived allergies
+    // Get derived allergies and sub-ingredient details
     const derivedAllergies = await this.getAllDerivedAllergies(
       ingredient.ingredientId,
     );
+    const subIngredientDetails = await this.getSubIngredientDetails(
+      ingredient.ingredientId,
+    );
+
     const ingredientObj = ingredient.toJSON();
     return {
       ...ingredientObj,
       derivedAllergies: derivedAllergies.filter(
         (allergyId) => !ingredient.ingredientAllergies.includes(allergyId),
       ),
+      subIngredientDetails,
     };
   }
 
@@ -231,10 +252,14 @@ export class IngredientsService {
         `Ingredient with ID "${id}" not found after update`,
       );
     }
-    // Get derived allergies
+    // Get derived allergies and sub-ingredient details
     const derivedAllergies = await this.getAllDerivedAllergies(
       updatedIngredient.ingredientId,
     );
+    const subIngredientDetails = await this.getSubIngredientDetails(
+      updatedIngredient.ingredientId,
+    );
+
     const ingredientObj = updatedIngredient.toJSON();
     return {
       ...ingredientObj,
@@ -242,6 +267,7 @@ export class IngredientsService {
         (allergyId) =>
           !updatedIngredient.ingredientAllergies.includes(allergyId),
       ),
+      subIngredientDetails,
     };
   }
 
@@ -324,6 +350,38 @@ export class IngredientsService {
     return allAllergies.filter(
       (allergyId) => !ingredient.ingredientAllergies.includes(allergyId),
     );
+  }
+
+  /**
+   * Get sub-ingredient details including names and IDs
+   * @param ingredientId The ID of the ingredient
+   * @returns Array of sub-ingredient details
+   */
+  async getSubIngredientDetails(
+    ingredientId: string,
+  ): Promise<SubIngredientDetail[]> {
+    const ingredient = await this.ingredientModel
+      .findOne({ ingredientId })
+      .exec();
+
+    if (
+      !ingredient ||
+      !ingredient.subIngredients ||
+      ingredient.subIngredients.length === 0
+    ) {
+      return [];
+    }
+
+    // Fetch all sub-ingredients in a single query
+    const subIngredients = await this.ingredientModel
+      .find({ ingredientId: { $in: ingredient.subIngredients } })
+      .exec();
+
+    // Map to include both ID and name
+    return subIngredients.map((subIngredient) => ({
+      id: subIngredient.ingredientId,
+      name: subIngredient.ingredientName,
+    }));
   }
 
   private async generateIngredientId(): Promise<string> {
