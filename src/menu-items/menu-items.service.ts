@@ -1,3 +1,4 @@
+// src/menu-items/menu-items.service.ts
 import {
   Injectable,
   NotFoundException,
@@ -48,7 +49,10 @@ export class MenuItemsService {
       menuItemId,
     });
     const savedMenuItem = await createdMenuItem.save();
-    return savedMenuItem;
+
+    // Enhance with additional data before returning
+    const enhancedItems = await this.enhanceMenuItems([savedMenuItem]);
+    return enhancedItems[0];
   }
 
   async findAll(queryDto: QueryMenuItemDto, userId: string, userRole: string) {
@@ -94,6 +98,7 @@ export class MenuItemsService {
       .skip((page - 1) * limit)
       .limit(limit)
       .exec();
+
     // Enhance menu items with ingredient names and allergies
     return await this.enhanceMenuItems(menuItems);
   }
@@ -208,7 +213,7 @@ export class MenuItemsService {
     await this.menuItemModel.findByIdAndDelete(id).exec();
   }
 
-  // Helper method to enrich menu items with ingredient names and allergies
+  // Enhanced method to provide detailed information about menu items
   private async enhanceMenuItems(menuItems: any[]): Promise<any[]> {
     if (menuItems.length === 0) {
       return [];
@@ -235,12 +240,10 @@ export class MenuItemsService {
     // Get all allergy IDs including those derived from sub-ingredients
     for (const ingredient of ingredients) {
       ingredientMap[ingredient.ingredientId] = ingredient.ingredientName;
-
       // Get all allergies including those derived from sub-ingredients
       const allAllergies = await this.ingredientsService.getAllAllergies(
         ingredient.ingredientId,
       );
-
       ingredientToAllergiesMap[ingredient.ingredientId] = allAllergies;
     }
 
@@ -283,7 +286,6 @@ export class MenuItemsService {
       // Collect all allergies from all ingredients
       const allergiesList: any[] = [];
       const seenAllergies = new Set();
-
       menuItemObj.menuItemIngredients.forEach((ingredientId: string) => {
         const ingredientAllergies =
           ingredientToAllergiesMap[ingredientId] || [];
@@ -297,7 +299,6 @@ export class MenuItemsService {
           }
         });
       });
-
       menuItemObj.allergies = allergiesList;
       return menuItemObj;
     });
