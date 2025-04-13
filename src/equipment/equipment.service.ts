@@ -1,4 +1,5 @@
 // ./menutraining-server/src/equipment/equipment.service.ts
+
 import {
   Injectable,
   NotFoundException,
@@ -24,8 +25,9 @@ export class EquipmentService {
     userId: string,
     userRole: string,
   ) {
-    // Check if user is an admin
-    if (userRole !== RoleEnum[RoleEnum.admin].toString()) {
+    // The issue is likely in this admin check - we need to fix the comparison
+    // Fix: Updated the role comparison to work with string role IDs
+    if (userRole !== RoleEnum.admin.toString() && userRole !== '1') {
       throw new ForbiddenException('Only administrators can create equipment');
     }
 
@@ -41,39 +43,32 @@ export class EquipmentService {
   async findAll(queryDto: QueryEquipmentDto) {
     const { page = 1, limit = 10, name } = queryDto;
     const filter: any = {};
-
     if (name) {
       filter.equipmentName = { $regex: name, $options: 'i' };
     }
-
     const equipment = await this.equipmentModel
       .find(filter)
       .skip((page - 1) * limit)
       .limit(limit)
       .exec();
-
     return equipment.map((item) => item.toJSON());
   }
 
   async findOne(id: string) {
     const equipment = await this.equipmentModel.findById(id).exec();
-
     if (!equipment) {
       throw new NotFoundException(`Equipment with ID "${id}" not found`);
     }
-
     return equipment.toJSON();
   }
 
   async findByEquipmentId(equipmentId: string) {
     const equipment = await this.equipmentModel.findOne({ equipmentId }).exec();
-
     if (!equipment) {
       throw new NotFoundException(
         `Equipment with ID "${equipmentId}" not found`,
       );
     }
-
     return equipment.toJSON();
   }
 
@@ -83,30 +78,27 @@ export class EquipmentService {
     userId: string,
     userRole: string,
   ) {
-    // Check if user is an admin
-    if (userRole !== RoleEnum[RoleEnum.admin].toString()) {
+    // Fix: Updated the role comparison to work with string role IDs
+    if (userRole !== RoleEnum.admin.toString() && userRole !== '1') {
       throw new ForbiddenException('Only administrators can update equipment');
     }
 
     const updatedEquipment = await this.equipmentModel
       .findByIdAndUpdate(id, updateEquipmentDto, { new: true })
       .exec();
-
     if (!updatedEquipment) {
       throw new NotFoundException(`Equipment with ID "${id}" not found`);
     }
-
     return updatedEquipment.toJSON();
   }
 
   async remove(id: string, userId: string, userRole: string) {
-    // Check if user is an admin
-    if (userRole !== RoleEnum[RoleEnum.admin].toString()) {
+    // Fix: Updated the role comparison to work with string role IDs
+    if (userRole !== RoleEnum.admin.toString() && userRole !== '1') {
       throw new ForbiddenException('Only administrators can delete equipment');
     }
 
     const result = await this.equipmentModel.findByIdAndDelete(id).exec();
-
     if (!result) {
       throw new NotFoundException(`Equipment with ID "${id}" not found`);
     }
@@ -117,11 +109,9 @@ export class EquipmentService {
       .findOne({}, { equipmentId: 1 })
       .sort({ equipmentId: -1 })
       .exec();
-
     if (!lastEquipment) {
       return 'EQP-000001';
     }
-
     const lastId = lastEquipment.equipmentId;
     const numericPart = parseInt(lastId.substring(4), 10);
     const newNumericPart = numericPart + 1;
