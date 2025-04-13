@@ -31,6 +31,8 @@ import { MenuItemsModule } from './menu-items/menu-items.module';
 import { IngredientsModule } from './ingredients/ingredients.module';
 import { AllergiesModule } from './allergies/allergies.module';
 import { RestaurantsModule } from './restaurants/restaurants.module';
+import { MenuSectionsModule } from './menu-sections/menu-sections.module';
+import { MenusModule } from './menus/menus.module';
 
 // <database-block>
 const infrastructureDatabaseModule = (databaseConfig() as DatabaseConfig)
@@ -100,6 +102,8 @@ const infrastructureDatabaseModule = (databaseConfig() as DatabaseConfig)
     IngredientsModule,
     AllergiesModule,
     RestaurantsModule,
+    MenuSectionsModule,
+    MenusModule,
   ],
 })
 export class AppModule {}
