@@ -1,3 +1,4 @@
+// ./menutraining-server/src/recipes/recipes.service.ts
 // ./src/recipes/recipes.service.ts
 import {
   Injectable,
@@ -12,6 +13,7 @@ import { UpdateRecipeDto } from './dto/update-recipe.dto';
 import { QueryRecipeDto } from './dto/query-recipe.dto';
 import { RestaurantsService } from '../restaurants/restaurants.service';
 import { RoleEnum } from '../roles/roles.enum';
+import { IngredientSchemaClass } from '../ingredients/ingredient.schema';
 
 interface IngredientDetail {
   id: string;
@@ -28,6 +30,8 @@ export class RecipesService {
   constructor(
     @InjectModel(RecipeSchemaClass.name)
     private recipeModel: Model<RecipeSchemaClass>,
+    @InjectModel(IngredientSchemaClass.name)
+    private ingredientModel: Model<IngredientSchemaClass>,
     private restaurantsService: RestaurantsService,
   ) {}
 
@@ -60,8 +64,9 @@ export class RecipesService {
       ...createRecipeDto,
       recipeId,
     });
+
     const savedRecipe = await createdRecipe.save();
-    return savedRecipe.toJSON();
+    return await this.enhanceRecipeWithIngredientDetails(savedRecipe);
   }
 
   async findAll(
@@ -138,7 +143,12 @@ export class RecipesService {
       .limit(limit)
       .exec();
 
-    return recipes.map((recipe) => recipe.toJSON());
+    // Enhance recipes with ingredient details
+    const enhancedRecipes = await Promise.all(
+      recipes.map((recipe) => this.enhanceRecipeWithIngredientDetails(recipe)),
+    );
+
+    return enhancedRecipes;
   }
 
   async findOne(
@@ -163,7 +173,7 @@ export class RecipesService {
       }
     }
 
-    return recipe.toJSON();
+    return await this.enhanceRecipeWithIngredientDetails(recipe);
   }
 
   async findByRecipeId(
@@ -188,7 +198,7 @@ export class RecipesService {
       }
     }
 
-    return recipe.toJSON();
+    return await this.enhanceRecipeWithIngredientDetails(recipe);
   }
 
   async update(
@@ -243,7 +253,7 @@ export class RecipesService {
       );
     }
 
-    return updatedRecipe.toJSON();
+    return await this.enhanceRecipeWithIngredientDetails(updatedRecipe);
   }
 
   async remove(id: string, userId: string, userRole: string): Promise<void> {
@@ -265,6 +275,56 @@ export class RecipesService {
     }
 
     await this.recipeModel.findByIdAndDelete(id).exec();
+  }
+
+  /**
+   * Enhance recipe with ingredient details for all step ingredients
+   * Updated to handle cross-restaurant ingredient lookups
+   */
+  private async enhanceRecipeWithIngredientDetails(recipe: any): Promise<any> {
+    const recipeObj = recipe.toJSON ? recipe.toJSON() : recipe;
+
+    if (!recipeObj.recipeSteps || recipeObj.recipeSteps.length === 0) {
+      return recipeObj;
+    }
+
+    // Collect all ingredient IDs from all steps
+    const ingredientIds = new Set<string>();
+    recipeObj.recipeSteps.forEach((step: any) => {
+      if (step.stepIngredientItems) {
+        step.stepIngredientItems.forEach((item: any) => {
+          ingredientIds.add(item.ingredientId);
+        });
+      }
+    });
+
+    if (ingredientIds.size === 0) {
+      return recipeObj;
+    }
+
+    // Fetch all ingredients without restaurant restriction
+    // This allows recipes to reference both core and restaurant-specific ingredients
+    const ingredients = await this.ingredientModel
+      .find({ ingredientId: { $in: Array.from(ingredientIds) } })
+      .exec();
+
+    const ingredientMap = new Map<string, string>();
+    ingredients.forEach((ingredient) => {
+      ingredientMap.set(ingredient.ingredientId, ingredient.ingredientName);
+    });
+
+    // Enhance recipe steps with ingredient names
+    recipeObj.recipeSteps = recipeObj.recipeSteps.map((step: any) => ({
+      ...step,
+      stepIngredientItems:
+        step.stepIngredientItems?.map((item: any) => ({
+          ...item,
+          ingredientName:
+            ingredientMap.get(item.ingredientId) || item.ingredientId,
+        })) || [],
+    }));
+
+    return recipeObj;
   }
 
   private async generateRecipeId(): Promise<string> {

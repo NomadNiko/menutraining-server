@@ -1,3 +1,4 @@
+// ./menutraining-server/src/menu-items/menu-items.service.ts
 // src/menu-items/menu-items.service.ts
 import {
   Injectable,
@@ -43,11 +44,13 @@ export class MenuItemsService {
     if (!hasAccess) {
       throw new ForbiddenException('You do not have access to this restaurant');
     }
+
     const menuItemId = await this.generateMenuItemId();
     const createdMenuItem = new this.menuItemModel({
       ...createMenuItemDto,
       menuItemId,
     });
+
     const savedMenuItem = await createdMenuItem.save();
 
     // Enhance with additional data before returning
@@ -57,10 +60,13 @@ export class MenuItemsService {
 
   async findAll(queryDto: QueryMenuItemDto, userId: string, userRole: string) {
     const { page = 1, limit = 10, ingredientId, restaurantId } = queryDto;
+
     const filter: any = {};
+
     if (ingredientId) {
       filter.menuItemIngredients = ingredientId;
     }
+
     // If restaurantId is provided, filter by it
     if (restaurantId) {
       // Check restaurant access if not an admin
@@ -93,6 +99,7 @@ export class MenuItemsService {
         filter.restaurantId = { $in: user.associatedRestaurants };
       }
     }
+
     const menuItems = await this.menuItemModel
       .find(filter)
       .skip((page - 1) * limit)
@@ -108,6 +115,7 @@ export class MenuItemsService {
     if (!menuItem) {
       throw new NotFoundException(`Menu item with ID "${id}" not found`);
     }
+
     // Check restaurant access if not an admin
     if (userRole !== RoleEnum[RoleEnum.admin].toString()) {
       const hasAccess = await this.restaurantsService.checkUserRestaurantAccess(
@@ -121,6 +129,7 @@ export class MenuItemsService {
         );
       }
     }
+
     // Enhance menu item with ingredient names and allergies
     const enhancedItems = await this.enhanceMenuItems([menuItem]);
     return enhancedItems[0];
@@ -133,6 +142,7 @@ export class MenuItemsService {
         `Menu item with ID "${menuItemId}" not found`,
       );
     }
+
     // Check restaurant access if not an admin
     if (userRole !== RoleEnum[RoleEnum.admin].toString()) {
       const hasAccess = await this.restaurantsService.checkUserRestaurantAccess(
@@ -146,6 +156,7 @@ export class MenuItemsService {
         );
       }
     }
+
     // Enhance menu item with ingredient names and allergies
     const enhancedItems = await this.enhanceMenuItems([menuItem]);
     return enhancedItems[0];
@@ -161,6 +172,7 @@ export class MenuItemsService {
     if (!menuItem) {
       throw new NotFoundException(`Menu item with ID "${id}" not found`);
     }
+
     // Check restaurant access
     const hasAccess = await this.restaurantsService.checkUserRestaurantAccess(
       userId,
@@ -172,6 +184,7 @@ export class MenuItemsService {
         'You do not have access to update this menu item',
       );
     }
+
     // Prevent changing the restaurant ID
     if (
       updateMenuItemDto.restaurantId &&
@@ -181,14 +194,17 @@ export class MenuItemsService {
         'Cannot change the restaurant of an existing menu item',
       );
     }
+
     const updatedMenuItem = await this.menuItemModel
       .findByIdAndUpdate(id, updateMenuItemDto, { new: true })
       .exec();
+
     if (!updatedMenuItem) {
       throw new NotFoundException(
         `Menu item with ID "${id}" not found after update`,
       );
     }
+
     // Enhance the updated menu item with ingredient names and allergies
     const enhancedItems = await this.enhanceMenuItems([updatedMenuItem]);
     return enhancedItems[0];
@@ -199,6 +215,7 @@ export class MenuItemsService {
     if (!menuItem) {
       throw new NotFoundException(`Menu item with ID "${id}" not found`);
     }
+
     // Check restaurant access
     const hasAccess = await this.restaurantsService.checkUserRestaurantAccess(
       userId,
@@ -210,10 +227,12 @@ export class MenuItemsService {
         'You do not have access to delete this menu item',
       );
     }
+
     await this.menuItemModel.findByIdAndDelete(id).exec();
   }
 
   // Enhanced method to provide detailed information about menu items
+  // Updated to handle cross-restaurant ingredient lookups
   private async enhanceMenuItems(menuItems: any[]): Promise<any[]> {
     if (menuItems.length === 0) {
       return [];
@@ -228,7 +247,8 @@ export class MenuItemsService {
       return menuItems.map((item) => (item.toJSON ? item.toJSON() : item));
     }
 
-    // Fetch all ingredients in a single query
+    // Fetch all ingredients in a single query - no restaurant restriction
+    // This allows menu items to reference both core and restaurant-specific ingredients
     const ingredients = await this.ingredientModel
       .find({ ingredientId: { $in: ingredientIds } })
       .exec();
@@ -286,6 +306,7 @@ export class MenuItemsService {
       // Collect all allergies from all ingredients
       const allergiesList: any[] = [];
       const seenAllergies = new Set();
+
       menuItemObj.menuItemIngredients.forEach((ingredientId: string) => {
         const ingredientAllergies =
           ingredientToAllergiesMap[ingredientId] || [];
@@ -299,6 +320,7 @@ export class MenuItemsService {
           }
         });
       });
+
       menuItemObj.allergies = allergiesList;
       return menuItemObj;
     });
@@ -309,9 +331,11 @@ export class MenuItemsService {
       .findOne({}, { menuItemId: 1 })
       .sort({ menuItemId: -1 })
       .exec();
+
     if (!lastMenuItem) {
       return 'MID-000001';
     }
+
     const lastId = lastMenuItem.menuItemId;
     const numericPart = parseInt(lastId.substring(4), 10);
     const newNumericPart = numericPart + 1;
