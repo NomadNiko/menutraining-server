@@ -1,73 +1,433 @@
-# NestJS REST API boilerplate 🇺🇦
+# Menu Training Platform - Backend API
 
-[![image](https://github.com/brocoders/nestjs-boilerplate/assets/72293912/197da43e-02f4-4895-8d3e-b7a42a591c26)](https://github.com/new?template_name=nestjs-boilerplate&template_owner=brocoders)
+A robust NestJS backend API for the Menu Training platform - a comprehensive restaurant staff training system that helps employees learn menu items, ingredients, recipes, and allergen information through interactive quizzes.
 
-![github action status](https://github.com/brocoders/nestjs-boilerplate/actions/workflows/docker-e2e.yml/badge.svg)
-[![renovate](https://img.shields.io/badge/renovate-enabled-%231A1F6C?logo=renovatebot)](https://app.renovatebot.com/dashboard)
-[![Static Badge](https://img.shields.io/badge/supported_by-brocoders-d91965?logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB3aWR0aD0iMTMwIiBoZWlnaHQ9IjE4NyIgdmlld0JveD0iMCAwIDEzMCAxODciIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI%2BCjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwMF83NzExXzQ4OTEpIj4KPHBhdGggZD0iTTc1Ljk5NjcgNDUuNzUwNkM2NS4xMDg5IDQ2Ljg2MSA1Ny45MjMgNTguNDA5NyA2Mi4yNzgxIDY4Ljg0OEwxMDguNDQyIDE4N0w3My42MDEzIDE1NS4wMTlIMzQuODQwOUMyMC42ODY4IDE1NS4wMTkgOS4zNjM0OSAxNDMuNDcgOS4zNjM0OSAxMjkuMDM0Vjk0LjYxMDVDOS4zNjM0OSA5Mi4xNjc1IDguNDkyNDYgODkuNzI0NSA2Ljc1MDQyIDg3Ljk0NzdMMCA4MS4wNjNMNi43NTA0MiA3NC4xNzgxQzguNDkyNDYgNzIuNDAxNCA5LjM2MzQ5IDY5Ljk1ODQgOS4zNjM0OSA2Ny41MTU0VjMxLjA5MjZDOS4zNjM0OSAxMy43Njk2IDIzLjA4MjEgMCAzOS44NDkyIDBINTguMTQwN0w3NS45OTY3IDQ1Ljc1MDZaIiBmaWxsPSJ3aGl0ZSIvPgo8cGF0aCBkPSJNMTI1LjY0NiAxMTIuMzc4Vjk0LjgzMjdDMTI1LjY0NiA5My43MjIyIDEyNi4wODEgOTIuNjExOCAxMjYuOTUyIDkxLjcyMzRMMTMwLjAwMSA4OC4zOTIxTDEyNi45NTIgODUuMDYwN0MxMjYuMDgxIDg0LjE3MjQgMTI1LjY0NiA4My4wNjE5IDEyNS42NDYgODEuOTUxNFY2OS43MzY1QzEyNS42NDYgNTYuNDExMSAxMTQuOTc2IDQ1Ljc1MDcgMTAyLjEyOCA0NS43NTA3SDc1Ljk5NzNMMTA1LjYxMiAxMzAuODExQzEwNS42MTIgMTMwLjgxMSAxMTAuNjIgMTMwLjgxMSAxMTAuODM4IDEzMC44MTFDMTE5LjExMyAxMjkuMDM1IDEyNS42NDYgMTIxLjQ4NCAxMjUuNjQ2IDExMi4zNzhaIiBmaWxsPSJ3aGl0ZSIvPgo8L2c%2BCjxkZWZzPgo8Y2xpcFBhdGggaWQ9ImNsaXAwXzc3MTFfNDg5MSI%2BCjxyZWN0IHdpZHRoPSIxMzAiIGhlaWdodD0iMTg3IiBmaWxsPSJ3aGl0ZSIvPgo8L2NsaXBQYXRoPgo8L2RlZnM%2BCjwvc3ZnPgo%3D&logoColor=d91965)](https://brocoders.com/)
-[![Discord Badge](https://img.shields.io/badge/discord-NodeJS_boilerplate-d91965?style=flat&labelColor=5866f2&logo=discord&logoColor=white&link=https://discord.com/channels/520622812742811698/1197293125434093701)](https://discord.com/channels/520622812742811698/1197293125434093701)
+## 🚀 Features
 
-<br />
-<p align="center"><a href="https://discord.com/channels/520622812742811698/1197293125434093701"><img src="https://github.com/brocoders/nestjs-boilerplate/assets/72293912/c9d5fbf0-b56d-46b5-bb30-f96f44764bae" width="300"/></a></p>
-<br />
+### Core Functionality
+- **Multi-tenant Architecture**: Support for multiple restaurants with isolated data
+- **Comprehensive Menu Management**: Full CRUD operations for ingredients, menu items, recipes, and menus
+- **Dynamic Quiz System**: Generates training questions based on restaurant data
+- **Allergen Tracking**: Detailed allergen information for ingredients and menu items
+- **Equipment Management**: Track kitchen equipment requirements for recipes
 
-## Description <!-- omit in toc -->
+### Authentication & Security
+- **JWT Authentication**: Secure token-based authentication with refresh tokens
+- **Social Authentication**: Login with Google, Facebook, and Apple
+- **Role-based Access Control**: Admin and user roles with granular permissions
+- **Email Verification**: Secure email confirmation for new accounts
 
-NestJS REST API boilerplate for a typical project
+### Technical Features
+- **MongoDB Database**: Flexible document storage with Mongoose ODM
+- **File Upload Support**: AWS S3 integration for images and documents
+- **API Documentation**: Auto-generated Swagger/OpenAPI documentation
+- **Email Service**: Transactional emails for authentication flows
+- **Data Validation**: Comprehensive request validation with class-validator
+- **Error Handling**: Consistent error responses with detailed messages
 
-[Full documentation here](/docs/readme.md)
+## 📋 Prerequisites
 
-Demo: <https://nestjs-boilerplate-test.herokuapp.com/docs>
+- Node.js 18.x or higher
+- Yarn package manager
+- MongoDB 5.0+ (local or MongoDB Atlas)
+- AWS S3 bucket (for file uploads)
+- SMTP server (for emails)
 
-A fully compatible frontend boilerplate: <https://github.com/brocoders/extensive-react-boilerplate>
+## 🛠️ Installation
 
-Belongs to the [bc boilerplates](https://bcboilerplates.com/) ecosystem
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd menutraining-server
+   ```
 
-<https://github.com/user-attachments/assets/a66f114a-c714-4036-8eeb-20cbf04ae985>
+2. **Install dependencies**
+   ```bash
+   yarn install
+   ```
 
-## Table of Contents <!-- omit in toc -->
+3. **Configure environment**
+   ```bash
+   cp env-example-document .env
+   ```
 
-- [Features](#features)
-- [Contributors](#contributors)
-- [Support](#support)
+4. **Update .env file with your configuration**
+   ```env
+   # Application
+   NODE_ENV=development
+   APP_PORT=3001
+   API_PREFIX=api
+   APP_FALLBACK_LANGUAGE=en
+   APP_HEADER_LANGUAGE=x-custom-lang
+   FRONTEND_DOMAIN=http://localhost:3000
+   BACKEND_DOMAIN=http://localhost:3001
 
-## Features
+   # Database
+   DATABASE_TYPE=mongodb
+   DATABASE_URL=mongodb://localhost:27017/menutraining
 
-- [x] Database. Support [TypeORM](https://www.npmjs.com/package/typeorm) and [Mongoose](https://www.npmjs.com/package/mongoose).
-- [x] Seeding.
-- [x] Config Service ([@nestjs/config](https://www.npmjs.com/package/@nestjs/config)).
-- [x] Mailing ([nodemailer](https://www.npmjs.com/package/nodemailer)).
-- [x] Sign in and sign up via email.
-- [x] Social sign in (Apple, Facebook, Google).
-- [x] Admin and User roles.
-- [x] Internationalization/Translations (I18N) ([nestjs-i18n](https://www.npmjs.com/package/nestjs-i18n)).
-- [x] File uploads. Support local and Amazon S3 drivers.
-- [x] Swagger.
-- [x] E2E and units tests.
-- [x] Docker.
-- [x] CI (Github Actions).
+   # Authentication
+   AUTH_JWT_SECRET=your-secret-key
+   AUTH_JWT_TOKEN_EXPIRES_IN=15m
+   AUTH_REFRESH_SECRET=your-refresh-secret
+   AUTH_REFRESH_TOKEN_EXPIRES_IN=3650d
+   AUTH_FORGOT_SECRET=your-forgot-secret
+   AUTH_FORGOT_TOKEN_EXPIRES_IN=30m
+   AUTH_CONFIRM_EMAIL_SECRET=your-confirm-secret
+   AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN=1d
 
-## Contributors
+   # File Upload (AWS S3)
+   FILE_DRIVER=s3
+   ACCESS_KEY_ID=your-aws-access-key
+   SECRET_ACCESS_KEY=your-aws-secret-key
+   AWS_S3_REGION=us-east-1
+   AWS_DEFAULT_S3_BUCKET=your-bucket-name
 
-<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-<!-- prettier-ignore-start -->
-<!-- markdownlint-disable -->
-<table>
-  <tbody>
-    <tr>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Shchepotin"><img src="https://avatars.githubusercontent.com/u/6001723?v=4?s=100" width="100px;" alt="Vladyslav Shchepotin"/><br /><sub><b>Vladyslav Shchepotin</b></sub></a><br /><a href="#maintenance-Shchepotin" title="Maintenance">🚧</a> <a href="#doc-Shchepotin" title="Documentation">📖</a> <a href="#code-Shchepotin" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/SergeiLomako"><img src="https://avatars.githubusercontent.com/u/31205374?v=4?s=100" width="100px;" alt="SergeiLomako"/><br /><sub><b>SergeiLomako</b></sub></a><br /><a href="#code-SergeiLomako" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/ElenVlass"><img src="https://avatars.githubusercontent.com/u/72293912?v=4?s=100" width="100px;" alt="Elena Vlasenko"/><br /><sub><b>Elena Vlasenko</b></sub></a><br /><a href="#doc-ElenVlass" title="Documentation">📖</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="http://brocoders.com"><img src="https://avatars.githubusercontent.com/u/226194?v=4?s=100" width="100px;" alt="Rodion"/><br /><sub><b>Rodion</b></sub></a><br /><a href="#business-sars" title="Business development">💼</a></td>
-    </tr>
-  </tbody>
-</table>
+   # Email
+   MAIL_HOST=smtp.example.com
+   MAIL_PORT=587
+   MAIL_USER=your-email@example.com
+   MAIL_PASSWORD=your-email-password
+   MAIL_IGNORE_TLS=false
+   MAIL_SECURE=false
+   MAIL_REQUIRE_TLS=true
+   MAIL_DEFAULT_EMAIL=noreply@example.com
+   MAIL_DEFAULT_NAME=Menu Training
 
-<!-- markdownlint-restore -->
-<!-- prettier-ignore-end -->
+   # Social Auth (Optional)
+   GOOGLE_CLIENT_ID=your-google-client-id
+   GOOGLE_CLIENT_SECRET=your-google-client-secret
+   FACEBOOK_APP_ID=your-facebook-app-id
+   FACEBOOK_APP_SECRET=your-facebook-app-secret
+   APPLE_CLIENT_ID=your-apple-client-id
+   ```
 
-<!-- ALL-CONTRIBUTORS-LIST:END -->
+5. **Run database seeds (optional)**
+   ```bash
+   yarn seed:run:document
+   ```
 
-## Support
+## 🚀 Running the Application
 
-If you seek consulting, support, or wish to collaborate, please contact us via [boilerplates@brocoders.com](mailto:boilerplates@brocoders.com). For any inquiries regarding boilerplates, feel free to ask on [GitHub Discussions](https://github.com/brocoders/nestjs-boilerplate/discussions) or [Discord](https://discord.com/channels/520622812742811698/1197293125434093701).
+### Development Mode
+```bash
+yarn start:dev
+```
+
+### Production Mode
+```bash
+yarn build
+yarn start:prod
+```
+
+### Debug Mode
+```bash
+yarn start:debug
+```
+
+## 📚 API Documentation
+
+Once the server is running, you can access the Swagger documentation at:
+```
+http://localhost:3001/docs
+```
+
+### Main API Endpoints
+
+#### Authentication
+- `POST /api/v1/auth/email/register` - Register new user
+- `POST /api/v1/auth/email/login` - Login with email/password
+- `POST /api/v1/auth/refresh` - Refresh access token
+- `POST /api/v1/auth/logout` - Logout user
+- `POST /api/v1/auth/forgot/password` - Request password reset
+- `POST /api/v1/auth/reset/password` - Reset password
+- `POST /api/v1/auth/confirm/email` - Confirm email address
+
+#### Users
+- `GET /api/v1/users` - Get all users (admin only)
+- `GET /api/v1/users/:id` - Get user by ID
+- `PATCH /api/v1/users/:id` - Update user
+- `DELETE /api/v1/users/:id` - Delete user
+
+#### Restaurants
+- `GET /api/v1/restaurants` - Get user's restaurants
+- `GET /api/v1/restaurants/:id` - Get restaurant details
+- `POST /api/v1/restaurants` - Create restaurant (admin only)
+- `PATCH /api/v1/restaurants/:id` - Update restaurant
+- `DELETE /api/v1/restaurants/:id` - Delete restaurant
+
+#### Ingredients
+- `GET /api/v1/ingredients` - Get all ingredients
+- `GET /api/v1/ingredients/:id` - Get ingredient details
+- `POST /api/v1/ingredients` - Create ingredient
+- `PATCH /api/v1/ingredients/:id` - Update ingredient
+- `DELETE /api/v1/ingredients/:id` - Delete ingredient
+
+#### Menu Items
+- `GET /api/v1/menu-items` - Get all menu items
+- `GET /api/v1/menu-items/:id` - Get menu item details
+- `POST /api/v1/menu-items` - Create menu item
+- `PATCH /api/v1/menu-items/:id` - Update menu item
+- `DELETE /api/v1/menu-items/:id` - Delete menu item
+
+#### Recipes
+- `GET /api/v1/recipes` - Get all recipes
+- `GET /api/v1/recipes/:id` - Get recipe details
+- `POST /api/v1/recipes` - Create recipe
+- `PATCH /api/v1/recipes/:id` - Update recipe
+- `DELETE /api/v1/recipes/:id` - Delete recipe
+
+#### Allergies
+- `GET /api/v1/allergies` - Get all allergies
+- `POST /api/v1/allergies` - Create allergy
+- `PATCH /api/v1/allergies/:id` - Update allergy
+- `DELETE /api/v1/allergies/:id` - Delete allergy
+
+#### Equipment
+- `GET /api/v1/equipment` - Get all equipment
+- `POST /api/v1/equipment` - Create equipment
+- `PATCH /api/v1/equipment/:id` - Update equipment
+- `DELETE /api/v1/equipment/:id` - Delete equipment
+
+## 🧪 Testing
+
+### Run all tests
+```bash
+yarn test
+```
+
+### Run unit tests
+```bash
+yarn test:unit
+```
+
+### Run e2e tests
+```bash
+yarn test:e2e
+```
+
+### Run tests with coverage
+```bash
+yarn test:cov
+```
+
+## 📂 Project Structure
+
+```
+src/
+├── allergies/          # Allergy management module
+├── auth/               # Authentication module
+├── auth-apple/         # Apple authentication
+├── auth-facebook/      # Facebook authentication
+├── auth-google/        # Google authentication
+├── config/             # Application configuration
+├── database/           # Database configuration and migrations
+├── equipment/          # Equipment management module
+├── files/              # File upload module
+├── home/               # Health check endpoint
+├── i18n/               # Internationalization
+├── ingredients/        # Ingredients module
+├── mail/               # Email service
+├── menu-items/         # Menu items module
+├── menu-sections/      # Menu sections module
+├── menus/              # Menus module
+├── recipes/            # Recipes module
+├── restaurants/        # Restaurants module
+├── roles/              # Role-based access control
+├── session/            # Session management
+├── statuses/           # User status management
+├── users/              # User management module
+└── utils/              # Utility functions and decorators
+```
+
+## 🔧 Configuration
+
+### Database Configuration
+The application uses MongoDB with Mongoose ODM. Configure the database connection in your `.env` file:
+
+```env
+DATABASE_TYPE=mongodb
+DATABASE_URL=mongodb://localhost:27017/menutraining
+```
+
+For MongoDB Atlas:
+```env
+DATABASE_URL=mongodb+srv://username:password@cluster.mongodb.net/menutraining?retryWrites=true&w=majority
+```
+
+### File Storage Configuration
+Configure AWS S3 for file uploads:
+```env
+FILE_DRIVER=s3
+ACCESS_KEY_ID=your-aws-access-key
+SECRET_ACCESS_KEY=your-aws-secret-key
+AWS_S3_REGION=us-east-1
+AWS_DEFAULT_S3_BUCKET=your-bucket-name
+```
+
+### Email Configuration
+Configure SMTP for sending emails:
+```env
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USER=your-email@gmail.com
+MAIL_PASSWORD=your-app-password
+```
+
+## 🐳 Docker Support
+
+### Run with Docker Compose
+```bash
+# Development
+docker-compose -f docker-compose.document.yaml up
+
+# Production
+docker-compose -f docker-compose.yaml up
+```
+
+### Build Docker Image
+```bash
+docker build -t menutraining-server .
+```
+
+## 📦 Database Management
+
+### Seed database
+```bash
+yarn seed:run:document
+```
+
+### Database Schema
+
+#### User
+- `firstName`: string
+- `lastName`: string
+- `email`: string (unique)
+- `password`: string (hashed)
+- `role`: ObjectId (reference to Role)
+- `status`: ObjectId (reference to Status)
+- `restaurants`: ObjectId[] (references to Restaurant)
+
+#### Restaurant
+- `name`: string
+- `address`: string
+- `phone`: string
+- `email`: string
+- `users`: ObjectId[] (references to User)
+
+#### Ingredient
+- `name`: string
+- `description`: string
+- `category`: string
+- `allergies`: ObjectId[] (references to Allergy)
+- `subIngredients`: ObjectId[] (self-reference)
+- `restaurant`: ObjectId (reference to Restaurant)
+
+#### MenuItem
+- `name`: string
+- `description`: string
+- `price`: number
+- `ingredients`: ObjectId[] (references to Ingredient)
+- `restaurant`: ObjectId (reference to Restaurant)
+
+#### Recipe
+- `name`: string
+- `description`: string
+- `steps`: RecipeStep[]
+- `equipment`: ObjectId[] (references to Equipment)
+- `restaurant`: ObjectId (reference to Restaurant)
+
+## 🚀 Deployment
+
+### Environment Variables
+Ensure all required environment variables are set in production:
+- Use strong, unique secrets for JWT tokens
+- Configure production database credentials
+- Set up production AWS S3 bucket
+- Configure production email service
+
+### Production Build
+```bash
+yarn build
+yarn start:prod
+```
+
+### Health Check
+The application provides a health check endpoint at:
+```
+GET /api/v1
+```
+
+### Recommended Deployment Platforms
+- **AWS EC2/ECS**: For full control over infrastructure
+- **Heroku**: Quick deployment with minimal configuration
+- **Google Cloud Run**: Serverless container deployment
+- **Azure App Service**: Microsoft cloud deployment
+
+## 🔒 Security Best Practices
+
+1. **Environment Variables**: Never commit `.env` files to version control
+2. **Secrets Management**: Use a secrets manager in production (AWS Secrets Manager, HashiCorp Vault)
+3. **Database Security**: Use connection strings with SSL in production
+4. **API Rate Limiting**: Configure rate limiting for public endpoints
+5. **CORS**: Configure allowed origins appropriately
+6. **File Upload**: Validate file types and sizes, scan for malware
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 🆘 Support
+
+For support and questions:
+- Check the [API Documentation](http://localhost:3001/docs)
+- Review existing issues on GitHub
+- Create a new issue for bug reports or feature requests
+
+## 🛠️ Troubleshooting
+
+### Common Issues
+
+#### MongoDB Connection Failed
+- Ensure MongoDB is running: `mongod`
+- Check connection string in `.env`
+- Verify network connectivity to MongoDB Atlas if using cloud
+
+#### Email Not Sending
+- Verify SMTP credentials
+- Check firewall settings for SMTP port
+- Enable "Less secure app access" for Gmail
+
+#### File Upload Failed
+- Verify AWS credentials
+- Check S3 bucket permissions
+- Ensure bucket exists in specified region
+
+#### JWT Token Errors
+- Ensure all JWT secrets are set in `.env`
+- Check token expiration times
+- Clear browser cookies/storage
+
+## 📈 Performance Optimization
+
+1. **Database Indexing**: Add indexes for frequently queried fields
+2. **Caching**: Implement Redis for session storage and caching
+3. **Query Optimization**: Use MongoDB aggregation pipeline for complex queries
+4. **File Compression**: Enable gzip compression for API responses
+5. **Connection Pooling**: Configure appropriate database connection pool size
+
+## 🔄 API Versioning
+
+The API uses URL versioning:
+- Current version: `/api/v1`
+- Future versions: `/api/v2`, `/api/v3`, etc.
+
+Deprecated endpoints will be marked in the documentation and removed after a deprecation period.
