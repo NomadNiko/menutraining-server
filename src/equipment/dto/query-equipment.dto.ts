@@ -1,24 +1,16 @@
-// ./menutraining-server/src/menu-items/dto/query-menu-item.dto.ts
+// ./menutraining-server/src/equipment/dto/query-equipment.dto.ts
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsString } from 'class-validator';
 import { Transform } from 'class-transformer';
 
-export class QueryMenuItemDto {
+export class QueryEquipmentDto {
   @ApiPropertyOptional({
-    description: 'Filter by ingredient ID',
-    example: 'ING-000001',
+    description: 'Filter by equipment name',
+    example: 'Blender',
   })
   @IsString()
   @IsOptional()
-  ingredientId?: string;
-
-  @ApiPropertyOptional({
-    description: 'Filter by restaurant ID',
-    example: 'RST-000001',
-  })
-  @IsString()
-  @IsOptional()
-  restaurantId?: string;
+  name?: string;
 
   @ApiPropertyOptional()
   @Transform(({ value }) => (value ? Number(value) : 1))

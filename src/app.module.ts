@@ -30,6 +30,11 @@ import { DatabaseConfig } from './database/config/database-config.type';
 import { MenuItemsModule } from './menu-items/menu-items.module';
 import { IngredientsModule } from './ingredients/ingredients.module';
 import { AllergiesModule } from './allergies/allergies.module';
+import { RestaurantsModule } from './restaurants/restaurants.module';
+import { MenuSectionsModule } from './menu-sections/menu-sections.module';
+import { MenusModule } from './menus/menus.module';
+import { EquipmentModule } from './equipment/equipment.module';
+import { RecipesModule } from './recipes/recipes.module';
 
 // <database-block>
 const infrastructureDatabaseModule = (databaseConfig() as DatabaseConfig)
@@ -98,6 +103,11 @@ const infrastructureDatabaseModule = (databaseConfig() as DatabaseConfig)
     MenuItemsModule,
     IngredientsModule,
     AllergiesModule,
+    RestaurantsModule,
+    MenuSectionsModule,
+    MenusModule,
+    EquipmentModule,
+    RecipesModule,
   ],
 })
 export class AppModule {}

@@ -1,3 +1,4 @@
+// ./menutraining-server/src/ingredients/ingredients.controller.ts
 import {
   Controller,
   Get,
@@ -9,8 +10,17 @@ import {
   Query,
   HttpStatus,
   HttpCode,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
+import { AuthGuard } from '@nestjs/passport';
 import { IngredientsService } from './ingredients.service';
 import { CreateIngredientDto } from './dto/create-ingredient.dto';
 import { UpdateIngredientDto } from './dto/update-ingredient.dto';
@@ -18,6 +28,8 @@ import { QueryIngredientDto } from './dto/query-ingredient.dto';
 import { IngredientSchemaClass } from './ingredient.schema';
 
 @ApiTags('Ingredients')
+@ApiBearerAuth()
+@UseGuards(AuthGuard('jwt'))
 @Controller({
   path: 'ingredients',
   version: '1',
@@ -35,8 +47,13 @@ export class IngredientsController {
   })
   create(
     @Body() createIngredientDto: CreateIngredientDto,
+    @Request() req,
   ): Promise<IngredientSchemaClass> {
-    return this.ingredientsService.create(createIngredientDto);
+    return this.ingredientsService.create(
+      createIngredientDto,
+      req.user.id,
+      req.user.role.id,
+    );
   }
 
   @Get()
@@ -51,8 +68,13 @@ export class IngredientsController {
   })
   findAll(
     @Query() query: QueryIngredientDto,
+    @Request() req,
   ): Promise<IngredientSchemaClass[]> {
-    return this.ingredientsService.findAll(query);
+    return this.ingredientsService.findAll(
+      query,
+      req.user.id,
+      req.user.role.id,
+    );
   }
 
   @Get(':id')
@@ -68,8 +90,11 @@ export class IngredientsController {
     status: HttpStatus.NOT_FOUND,
     description: 'Ingredient not found.',
   })
-  findOne(@Param('id') id: string): Promise<IngredientSchemaClass> {
-    return this.ingredientsService.findOne(id);
+  findOne(
+    @Param('id') id: string,
+    @Request() req,
+  ): Promise<IngredientSchemaClass> {
+    return this.ingredientsService.findOne(id, req.user.id, req.user.role.id);
   }
 
   @Get('code/:ingredientId')
@@ -90,8 +115,13 @@ export class IngredientsController {
   })
   findByIngredientId(
     @Param('ingredientId') ingredientId: string,
+    @Request() req,
   ): Promise<IngredientSchemaClass> {
-    return this.ingredientsService.findByIngredientId(ingredientId);
+    return this.ingredientsService.findByIngredientId(
+      ingredientId,
+      req.user.id,
+      req.user.role.id,
+    );
   }
 
   @Patch(':id')
@@ -110,8 +140,14 @@ export class IngredientsController {
   update(
     @Param('id') id: string,
     @Body() updateIngredientDto: UpdateIngredientDto,
+    @Request() req,
   ): Promise<IngredientSchemaClass> {
-    return this.ingredientsService.update(id, updateIngredientDto);
+    return this.ingredientsService.update(
+      id,
+      updateIngredientDto,
+      req.user.id,
+      req.user.role.id,
+    );
   }
 
   @Delete(':id')
@@ -126,7 +162,7 @@ export class IngredientsController {
     status: HttpStatus.NOT_FOUND,
     description: 'Ingredient not found.',
   })
-  remove(@Param('id') id: string): Promise<void> {
-    return this.ingredientsService.remove(id);
+  remove(@Param('id') id: string, @Request() req): Promise<void> {
+    return this.ingredientsService.remove(id, req.user.id, req.user.role.id);
   }
 }

@@ -1,31 +1,16 @@
+// src/menu-sections/dto/query-menu-section.dto.ts
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString } from 'class-validator';
 import { Transform } from 'class-transformer';
+import { IsOptional, IsString } from 'class-validator';
 
-export class QueryIngredientDto {
+export class QueryMenuSectionDto {
   @ApiPropertyOptional({
-    description: 'Filter by ingredient name',
-    example: 'Onion',
+    description: 'Filter by section title',
+    example: 'Breakfast',
   })
   @IsString()
   @IsOptional()
-  name?: string;
-
-  @ApiPropertyOptional({
-    description: 'Filter by allergy ID',
-    example: 'ALG-000001',
-  })
-  @IsString()
-  @IsOptional()
-  allergyId?: string;
-
-  @ApiPropertyOptional({
-    description: 'Filter by category',
-    example: 'Vegetables',
-  })
-  @IsString()
-  @IsOptional()
-  category?: string;
+  title?: string;
 
   @ApiPropertyOptional({
     description: 'Filter by restaurant ID',

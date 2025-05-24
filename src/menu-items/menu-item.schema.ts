@@ -1,3 +1,4 @@
+// ./menutraining-server/src/menu-items/menu-item.schema.ts
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 import { EntityDocumentHelper } from '../utils/document-entity-helper';
@@ -27,6 +28,10 @@ export class MenuItemSchemaClass extends EntityDocumentHelper {
 
   @Prop()
   menuItemUrl: string;
+
+  @Prop({ required: true })
+  restaurantId: string;
 }
 
 export const MenuItemSchema = SchemaFactory.createForClass(MenuItemSchemaClass);
+MenuItemSchema.index({ restaurantId: 1 });

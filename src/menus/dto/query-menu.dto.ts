@@ -1,31 +1,26 @@
+// src/menus/dto/query-menu.dto.ts
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString } from 'class-validator';
 import { Transform } from 'class-transformer';
+import { IsEnum, IsOptional, IsString } from 'class-validator';
+import { DayOfWeek } from '../menu.schema';
 
-export class QueryIngredientDto {
+export class QueryMenuDto {
   @ApiPropertyOptional({
-    description: 'Filter by ingredient name',
-    example: 'Onion',
+    description: 'Filter by menu name',
+    example: 'Dinner',
   })
   @IsString()
   @IsOptional()
   name?: string;
 
   @ApiPropertyOptional({
-    description: 'Filter by allergy ID',
-    example: 'ALG-000001',
+    description: 'Filter by active day',
+    example: 'saturday',
+    enum: DayOfWeek,
   })
-  @IsString()
+  @IsEnum(DayOfWeek)
   @IsOptional()
-  allergyId?: string;
-
-  @ApiPropertyOptional({
-    description: 'Filter by category',
-    example: 'Vegetables',
-  })
-  @IsString()
-  @IsOptional()
-  category?: string;
+  activeDay?: DayOfWeek;
 
   @ApiPropertyOptional({
     description: 'Filter by restaurant ID',

@@ -36,4 +36,21 @@ export class CreateIngredientDto {
   @IsString({ each: true })
   @IsOptional()
   subIngredients?: string[];
+
+  @ApiProperty({
+    description: 'List of categories for this ingredient',
+    example: ['Vegetables', 'Basic'],
+    type: [String],
+  })
+  @IsArray()
+  @IsString({ each: true })
+  categories: string[];
+
+  @ApiProperty({
+    description: 'Restaurant ID this ingredient belongs to',
+    example: 'RST-000001',
+  })
+  @IsString()
+  @IsNotEmpty()
+  restaurantId: string;
 }

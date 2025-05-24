@@ -27,8 +27,16 @@ export class IngredientSchemaClass extends EntityDocumentHelper {
 
   @Prop({ type: [String], default: [] })
   subIngredients: string[];
+
+  @Prop({ type: [String], default: [] })
+  categories: string[];
+
+  @Prop({ required: true })
+  restaurantId: string;
 }
 
 export const IngredientSchema = SchemaFactory.createForClass(
   IngredientSchemaClass,
 );
+
+IngredientSchema.index({ restaurantId: 1 });

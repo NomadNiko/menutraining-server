@@ -1,31 +1,42 @@
+// ./src/recipes/dto/query-recipe.dto.ts
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString } from 'class-validator';
 import { Transform } from 'class-transformer';
+import { IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
-export class QueryIngredientDto {
+export class QueryRecipeDto {
   @ApiPropertyOptional({
-    description: 'Filter by ingredient name',
-    example: 'Onion',
+    description: 'Filter by recipe name',
+    example: 'Cake',
   })
   @IsString()
   @IsOptional()
   name?: string;
 
   @ApiPropertyOptional({
-    description: 'Filter by allergy ID',
-    example: 'ALG-000001',
+    description: 'Filter by ingredient ID',
+    example: 'ING-000001',
   })
   @IsString()
   @IsOptional()
-  allergyId?: string;
+  ingredientId?: string;
 
   @ApiPropertyOptional({
-    description: 'Filter by category',
-    example: 'Vegetables',
+    description: 'Filter by equipment ID',
+    example: 'EQP-000001',
   })
   @IsString()
   @IsOptional()
-  category?: string;
+  equipmentId?: string;
+
+  @ApiPropertyOptional({
+    description: 'Maximum prep time in minutes',
+    example: 30,
+  })
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  @Transform(({ value }) => (value ? Number(value) : undefined))
+  maxPrepTime?: number;
 
   @ApiPropertyOptional({
     description: 'Filter by restaurant ID',
