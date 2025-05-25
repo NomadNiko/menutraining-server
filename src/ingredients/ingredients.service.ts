@@ -261,7 +261,7 @@ export class IngredientsService {
   }
 
   async findOne(id: string, userId: string, userRole: string) {
-    const ingredient = await this.ingredientModel.findById(id).exec();
+    const ingredient = await this.ingredientModel.findOne({ ingredientId: id }).exec();
     if (!ingredient) {
       throw new NotFoundException(`Ingredient with ID "${id}" not found`);
     }

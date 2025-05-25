@@ -46,16 +46,26 @@ export class EquipmentService {
     if (name) {
       filter.equipmentName = { $regex: name, $options: 'i' };
     }
+    
+    // Get the data
     const equipment = await this.equipmentModel
       .find(filter)
       .skip((page - 1) * limit)
       .limit(limit)
       .exec();
-    return equipment.map((item) => item.toJSON());
+    
+    // Check if there's a next page
+    const totalCount = await this.equipmentModel.countDocuments(filter).exec();
+    const hasNextPage = page * limit < totalCount;
+    
+    return {
+      data: equipment.map((item) => item.toJSON()),
+      hasNextPage
+    };
   }
 
   async findOne(id: string) {
-    const equipment = await this.equipmentModel.findById(id).exec();
+    const equipment = await this.equipmentModel.findOne({ equipmentId: id }).exec();
     if (!equipment) {
       throw new NotFoundException(`Equipment with ID "${id}" not found`);
     }
@@ -84,7 +94,7 @@ export class EquipmentService {
     }
 
     const updatedEquipment = await this.equipmentModel
-      .findByIdAndUpdate(id, updateEquipmentDto, { new: true })
+      .findOneAndUpdate({ equipmentId: id }, updateEquipmentDto, { new: true })
       .exec();
     if (!updatedEquipment) {
       throw new NotFoundException(`Equipment with ID "${id}" not found`);
@@ -98,7 +108,7 @@ export class EquipmentService {
       throw new ForbiddenException('Only administrators can delete equipment');
     }
 
-    const result = await this.equipmentModel.findByIdAndDelete(id).exec();
+    const result = await this.equipmentModel.findOneAndDelete({ equipmentId: id }).exec();
     if (!result) {
       throw new NotFoundException(`Equipment with ID "${id}" not found`);
     }
