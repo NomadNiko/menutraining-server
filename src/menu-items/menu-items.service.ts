@@ -257,13 +257,78 @@ export class MenuItemsService {
     const ingredientMap: Record<string, string> = {};
     const ingredientToAllergiesMap: Record<string, string[]> = {};
 
-    // Get all allergy IDs including those derived from sub-ingredients
+    // Batch optimization: Collect all sub-ingredient IDs from all ingredients
+    const allSubIngredientIds = new Set<string>();
+    ingredients.forEach((ingredient) => {
+      if (ingredient.subIngredients && ingredient.subIngredients.length > 0) {
+        ingredient.subIngredients.forEach((subId) =>
+          allSubIngredientIds.add(subId),
+        );
+      }
+    });
+
+    // Fetch all sub-ingredients in a single query
+    const subIngredientsMap = new Map<string, any>();
+    if (allSubIngredientIds.size > 0) {
+      const allSubIngredients = await this.ingredientModel
+        .find({ ingredientId: { $in: Array.from(allSubIngredientIds) } })
+        .exec();
+
+      allSubIngredients.forEach((subIng) => {
+        subIngredientsMap.set(subIng.ingredientId, subIng);
+      });
+    }
+
+    // Build allergies cache for efficient lookup
+    const allergiesCache = new Map<string, string[]>();
+
+    // Helper function to get allergies with caching
+    const getCachedAllergies = (
+      ingredientId: string,
+      visitedIngredients: Set<string> = new Set(),
+    ): string[] => {
+      if (allergiesCache.has(ingredientId)) {
+        return allergiesCache.get(ingredientId)!;
+      }
+
+      if (visitedIngredients.has(ingredientId)) {
+        return [];
+      }
+
+      visitedIngredients.add(ingredientId);
+
+      // Find the ingredient (could be main or sub)
+      const ing =
+        ingredients.find((i) => i.ingredientId === ingredientId) ||
+        subIngredientsMap.get(ingredientId);
+
+      if (!ing) {
+        return [];
+      }
+
+      const allergies = [...(ing.ingredientAllergies || [])];
+
+      // Add allergies from sub-ingredients
+      if (ing.subIngredients && ing.subIngredients.length > 0) {
+        for (const subIngId of ing.subIngredients) {
+          const subAllergies = getCachedAllergies(subIngId, visitedIngredients);
+          subAllergies.forEach((allergyId) => {
+            if (!allergies.includes(allergyId)) {
+              allergies.push(allergyId);
+            }
+          });
+        }
+      }
+
+      allergiesCache.set(ingredientId, allergies);
+      return allergies;
+    };
+
+    // Process all ingredients with batch-fetched data
     for (const ingredient of ingredients) {
       ingredientMap[ingredient.ingredientId] = ingredient.ingredientName;
-      // Get all allergies including those derived from sub-ingredients
-      const allAllergies = await this.ingredientsService.getAllAllergies(
-        ingredient.ingredientId,
-      );
+      // Get all allergies using cached function (no async/await needed)
+      const allAllergies = getCachedAllergies(ingredient.ingredientId);
       ingredientToAllergiesMap[ingredient.ingredientId] = allAllergies;
     }
 

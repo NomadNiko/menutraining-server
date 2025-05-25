@@ -145,22 +145,111 @@ export class IngredientsService {
       .limit(limit)
       .exec();
 
-    // Enhance ingredients with derived allergies and sub-ingredient details
+    // Batch optimization: Collect all sub-ingredient IDs first
+    const allSubIngredientIds = new Set<string>();
+    ingredients.forEach((ingredient) => {
+      if (ingredient.subIngredients && ingredient.subIngredients.length > 0) {
+        ingredient.subIngredients.forEach((subId) =>
+          allSubIngredientIds.add(subId),
+        );
+      }
+    });
+
+    // Fetch all sub-ingredients in a single query
+    const subIngredientsMap = new Map<string, IngredientSchemaClass>();
+    if (allSubIngredientIds.size > 0) {
+      const allSubIngredients = await this.ingredientModel
+        .find({ ingredientId: { $in: Array.from(allSubIngredientIds) } })
+        .exec();
+
+      allSubIngredients.forEach((subIng) => {
+        subIngredientsMap.set(subIng.ingredientId, subIng);
+      });
+    }
+
+    // Build allergies map for all ingredients (including sub-ingredients)
+    const allergiesCache = new Map<string, string[]>();
+
+    // Helper function to get allergies with caching
+    const getCachedAllergies = async (
+      ingredientId: string,
+      visitedIngredients: Set<string> = new Set(),
+    ): Promise<string[]> => {
+      if (allergiesCache.has(ingredientId)) {
+        return allergiesCache.get(ingredientId)!;
+      }
+
+      if (visitedIngredients.has(ingredientId)) {
+        return [];
+      }
+
+      visitedIngredients.add(ingredientId);
+
+      // Find the ingredient (could be main or sub)
+      const ing =
+        ingredients.find((i) => i.ingredientId === ingredientId) ||
+        subIngredientsMap.get(ingredientId);
+
+      if (!ing) {
+        return [];
+      }
+
+      const allergies = [...(ing.ingredientAllergies || [])];
+
+      // Add allergies from sub-ingredients
+      if (ing.subIngredients && ing.subIngredients.length > 0) {
+        for (const subIngId of ing.subIngredients) {
+          const subAllergies = await getCachedAllergies(
+            subIngId,
+            visitedIngredients,
+          );
+          subAllergies.forEach((allergyId) => {
+            if (!allergies.includes(allergyId)) {
+              allergies.push(allergyId);
+            }
+          });
+        }
+      }
+
+      allergiesCache.set(ingredientId, allergies);
+      return allergies;
+    };
+
+    // Process all ingredients with the pre-fetched data
     const enhancedIngredients = await Promise.all(
       ingredients.map(async (ingredient) => {
         const ingredientObj = ingredient.toJSON();
-        const derivedAllergies = await this.getAllDerivedAllergies(
-          ingredient.ingredientId,
-        );
-        const subIngredientDetails = await this.getSubIngredientDetails(
+
+        // Get all allergies using cached function
+        const allAllergies = await getCachedAllergies(
           ingredient.ingredientId,
         );
 
+        // Derived allergies are those not directly on the ingredient
+        const derivedAllergies = allAllergies.filter(
+          (allergyId) => !ingredient.ingredientAllergies.includes(allergyId),
+        );
+
+        // Build sub-ingredient details from pre-fetched map
+        const subIngredientDetails: SubIngredientDetail[] = [];
+        if (
+          ingredient.subIngredients &&
+          ingredient.subIngredients.length > 0
+        ) {
+          ingredient.subIngredients.forEach((subId) => {
+            const subIng = subIngredientsMap.get(subId);
+            if (subIng) {
+              subIngredientDetails.push({
+                id: subIng.ingredientId,
+                name: subIng.ingredientName,
+              });
+            }
+          });
+        }
+
         return {
           ...ingredientObj,
-          derivedAllergies: derivedAllergies.filter(
-            (allergyId) => !ingredient.ingredientAllergies.includes(allergyId),
-          ),
+          derivedAllergies,
           subIngredientDetails,
           // Add indicator for core ingredients
           isCoreIngredient: ingredient.restaurantId === CORE_RESTAURANT_ID,
