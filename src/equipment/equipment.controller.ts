@@ -64,7 +64,10 @@ export class EquipmentController {
     description: 'Return all equipment.',
     type: [EquipmentSchemaClass],
   })
-  findAll(@Query() query: QueryEquipmentDto): Promise<EquipmentSchemaClass[]> {
+  findAll(@Query() query: QueryEquipmentDto): Promise<{
+    data: EquipmentSchemaClass[];
+    hasNextPage: boolean;
+  }> {
     return this.equipmentService.findAll(query);
   }
 
