@@ -102,6 +102,15 @@ export class EquipmentService {
     return updatedEquipment.toJSON();
   }
 
+  async updateByEquipmentId(
+    equipmentId: string,
+    updateEquipmentDto: UpdateEquipmentDto,
+    userId: string,
+    userRole: string,
+  ) {
+    return this.update(equipmentId, updateEquipmentDto, userId, userRole);
+  }
+
   async remove(id: string, userId: string, userRole: string) {
     // Fix: Updated the role comparison to work with string role IDs
     if (userRole !== RoleEnum.admin.toString() && userRole !== '1') {
@@ -112,6 +121,14 @@ export class EquipmentService {
     if (!result) {
       throw new NotFoundException(`Equipment with ID "${id}" not found`);
     }
+  }
+
+  async removeByEquipmentId(
+    equipmentId: string,
+    userId: string,
+    userRole: string,
+  ) {
+    return this.remove(equipmentId, userId, userRole);
   }
 
   private async generateEquipmentId(): Promise<string> {

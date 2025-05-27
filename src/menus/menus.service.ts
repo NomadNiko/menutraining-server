@@ -74,7 +74,7 @@ export class MenusService {
     // If restaurantId is provided, filter by it
     if (restaurantId) {
       // Check restaurant access if not an admin
-      if (userRole !== RoleEnum[RoleEnum.admin].toString()) {
+      if (String(userRole) !== String(RoleEnum.admin)) {
         const hasAccess =
           await this.restaurantsService.checkUserRestaurantAccess(
             userId,
@@ -92,7 +92,7 @@ export class MenusService {
       filter.restaurantId = restaurantId;
     } else {
       // If no restaurantId provided, for non-admin users, only show menus for restaurants they have access to
-      if (userRole !== RoleEnum[RoleEnum.admin].toString()) {
+      if (String(userRole) !== String(RoleEnum.admin)) {
         const user =
           await this.restaurantsService['usersService'].findById(userId);
 
@@ -125,7 +125,7 @@ export class MenusService {
     }
 
     // Check restaurant access if not an admin
-    if (userRole !== RoleEnum[RoleEnum.admin].toString()) {
+    if (String(userRole) !== String(RoleEnum.admin)) {
       const hasAccess = await this.restaurantsService.checkUserRestaurantAccess(
         userId,
         menu.restaurantId,
@@ -148,7 +148,7 @@ export class MenusService {
     }
 
     // Check restaurant access if not an admin
-    if (userRole !== RoleEnum[RoleEnum.admin].toString()) {
+    if (String(userRole) !== String(RoleEnum.admin)) {
       const hasAccess = await this.restaurantsService.checkUserRestaurantAccess(
         userId,
         menu.restaurantId,
@@ -226,6 +226,69 @@ export class MenusService {
     return updatedMenu.toJSON();
   }
 
+  async updateByMenuId(
+    menuId: string,
+    updateMenuDto: UpdateMenuDto,
+    userId: string,
+    userRole: string,
+  ): Promise<MenuSchemaClass> {
+    const menu = await this.menuModel.findOne({ menuId }).exec();
+
+    if (!menu) {
+      throw new NotFoundException(`Menu with ID "${menuId}" not found`);
+    }
+
+    // Check restaurant access
+    const hasAccess = await this.restaurantsService.checkUserRestaurantAccess(
+      userId,
+      menu.restaurantId,
+      userRole,
+    );
+
+    if (!hasAccess) {
+      throw new ForbiddenException(
+        'You do not have access to update this menu',
+      );
+    }
+
+    // Prevent changing the restaurant ID
+    if (
+      updateMenuDto.restaurantId &&
+      updateMenuDto.restaurantId !== menu.restaurantId
+    ) {
+      throw new ForbiddenException(
+        'Cannot change the restaurant of an existing menu',
+      );
+    }
+
+    // Validate time formats if provided
+    if (
+      updateMenuDto.startTime &&
+      !this.isValidTimeFormat(updateMenuDto.startTime)
+    ) {
+      throw new BadRequestException('Start time must be in format HH:MM');
+    }
+
+    if (
+      updateMenuDto.endTime &&
+      !this.isValidTimeFormat(updateMenuDto.endTime)
+    ) {
+      throw new BadRequestException('End time must be in format HH:MM');
+    }
+
+    const updatedMenu = await this.menuModel
+      .findOneAndUpdate({ menuId }, updateMenuDto, { new: true })
+      .exec();
+
+    if (!updatedMenu) {
+      throw new NotFoundException(
+        `Menu with ID "${menuId}" not found after update`,
+      );
+    }
+
+    return updatedMenu.toJSON();
+  }
+
   async remove(id: string, userId: string, userRole: string) {
     const menu = await this.menuModel.findById(id).exec();
 
@@ -247,6 +310,29 @@ export class MenusService {
     }
 
     await this.menuModel.findByIdAndDelete(id).exec();
+  }
+
+  async removeByMenuId(menuId: string, userId: string, userRole: string) {
+    const menu = await this.menuModel.findOne({ menuId }).exec();
+
+    if (!menu) {
+      throw new NotFoundException(`Menu with ID "${menuId}" not found`);
+    }
+
+    // Check restaurant access
+    const hasAccess = await this.restaurantsService.checkUserRestaurantAccess(
+      userId,
+      menu.restaurantId,
+      userRole,
+    );
+
+    if (!hasAccess) {
+      throw new ForbiddenException(
+        'You do not have access to delete this menu',
+      );
+    }
+
+    await this.menuModel.findOneAndDelete({ menuId }).exec();
   }
 
   private isValidTimeFormat(time: string): boolean {

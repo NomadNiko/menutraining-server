@@ -76,10 +76,13 @@ export class MenuSectionsController {
     );
   }
 
-  @Get(':id')
+  @Get(':menuSectionId')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Get menu section by ID' })
-  @ApiParam({ name: 'id', description: 'Menu Section ID (MongoDB ObjectId)' })
+  @ApiOperation({ summary: 'Get menu section by menu section ID (SEC-XXXXXX)' })
+  @ApiParam({
+    name: 'menuSectionId',
+    description: 'Menu Section ID (SEC-XXXXXX pattern)',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Return the menu section.',
@@ -90,29 +93,6 @@ export class MenuSectionsController {
     description: 'Menu section not found.',
   })
   findOne(
-    @Param('id') id: string,
-    @Request() req,
-  ): Promise<MenuSectionSchemaClass> {
-    return this.menuSectionsService.findOne(id, req.user.id, req.user.role.id);
-  }
-
-  @Get('code/:menuSectionId')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Get menu section by menu section ID (MSC-XXXXXX)' })
-  @ApiParam({
-    name: 'menuSectionId',
-    description: 'Menu Section ID (MSC-XXXXXX pattern)',
-  })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Return the menu section.',
-    type: MenuSectionSchemaClass,
-  })
-  @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: 'Menu section not found.',
-  })
-  findByMenuSectionId(
     @Param('menuSectionId') menuSectionId: string,
     @Request() req,
   ): Promise<MenuSectionSchemaClass> {
@@ -123,10 +103,13 @@ export class MenuSectionsController {
     );
   }
 
-  @Patch(':id')
+  @Patch(':menuSectionId')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update a menu section' })
-  @ApiParam({ name: 'id', description: 'Menu Section ID (MongoDB ObjectId)' })
+  @ApiParam({
+    name: 'menuSectionId',
+    description: 'Menu Section ID (SEC-XXXXXX pattern)',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'The menu section has been successfully updated.',
@@ -137,22 +120,25 @@ export class MenuSectionsController {
     description: 'Menu section not found.',
   })
   update(
-    @Param('id') id: string,
+    @Param('menuSectionId') menuSectionId: string,
     @Body() updateMenuSectionDto: UpdateMenuSectionDto,
     @Request() req,
   ): Promise<MenuSectionSchemaClass> {
-    return this.menuSectionsService.update(
-      id,
+    return this.menuSectionsService.updateByMenuSectionId(
+      menuSectionId,
       updateMenuSectionDto,
       req.user.id,
       req.user.role.id,
     );
   }
 
-  @Delete(':id')
+  @Delete(':menuSectionId')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a menu section' })
-  @ApiParam({ name: 'id', description: 'Menu Section ID (MongoDB ObjectId)' })
+  @ApiParam({
+    name: 'menuSectionId',
+    description: 'Menu Section ID (SEC-XXXXXX pattern)',
+  })
   @ApiResponse({
     status: HttpStatus.NO_CONTENT,
     description: 'The menu section has been successfully deleted.',
@@ -161,7 +147,11 @@ export class MenuSectionsController {
     status: HttpStatus.NOT_FOUND,
     description: 'Menu section not found.',
   })
-  remove(@Param('id') id: string, @Request() req): Promise<void> {
-    return this.menuSectionsService.remove(id, req.user.id, req.user.role.id);
+  remove(@Param('menuSectionId') menuSectionId: string, @Request() req): Promise<void> {
+    return this.menuSectionsService.removeByMenuSectionId(
+      menuSectionId,
+      req.user.id,
+      req.user.role.id,
+    );
   }
 }

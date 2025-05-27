@@ -86,7 +86,7 @@ export class IngredientsService {
 
     if (restaurantId) {
       // Check restaurant access if not an admin
-      if (userRole !== RoleEnum[RoleEnum.admin].toString()) {
+      if (String(userRole) !== String(RoleEnum.admin)) {
         const hasAccess =
           await this.restaurantsService.checkUserRestaurantAccess(
             userId,
@@ -110,7 +110,7 @@ export class IngredientsService {
       }
     } else {
       // If no restaurantId provided, for non-admin users, show ingredients for restaurants they have access to + core
-      if (userRole !== RoleEnum[RoleEnum.admin].toString()) {
+      if (String(userRole) !== String(RoleEnum.admin)) {
         const user =
           await this.restaurantsService['usersService'].findById(userId);
         if (
@@ -269,7 +269,7 @@ export class IngredientsService {
     // Check access - allow access to core ingredients for all users
     if (ingredient.restaurantId !== CORE_RESTAURANT_ID) {
       // Check restaurant access if not an admin and not a core ingredient
-      if (userRole !== RoleEnum[RoleEnum.admin].toString()) {
+      if (String(userRole) !== String(RoleEnum.admin)) {
         const hasAccess =
           await this.restaurantsService.checkUserRestaurantAccess(
             userId,
@@ -320,7 +320,7 @@ export class IngredientsService {
     // Check access - allow access to core ingredients for all users
     if (ingredient.restaurantId !== CORE_RESTAURANT_ID) {
       // Check restaurant access if not an admin and not a core ingredient
-      if (userRole !== RoleEnum[RoleEnum.admin].toString()) {
+      if (String(userRole) !== String(RoleEnum.admin)) {
         const hasAccess =
           await this.restaurantsService.checkUserRestaurantAccess(
             userId,
@@ -367,7 +367,7 @@ export class IngredientsService {
 
     // Prevent updating core ingredients unless admin
     if (ingredient.restaurantId === CORE_RESTAURANT_ID) {
-      if (userRole !== RoleEnum[RoleEnum.admin].toString()) {
+      if (String(userRole) !== String(RoleEnum.admin)) {
         throw new ForbiddenException(
           'Only administrators can update core ingredients',
         );
@@ -426,6 +426,82 @@ export class IngredientsService {
     };
   }
 
+  async updateByIngredientId(
+    ingredientId: string,
+    updateIngredientDto: UpdateIngredientDto,
+    userId: string,
+    userRole: string,
+  ) {
+    const ingredient = await this.ingredientModel
+      .findOne({ ingredientId })
+      .exec();
+    if (!ingredient) {
+      throw new NotFoundException(
+        `Ingredient with ID "${ingredientId}" not found`,
+      );
+    }
+
+    // Prevent updating core ingredients unless admin
+    if (ingredient.restaurantId === CORE_RESTAURANT_ID) {
+      if (String(userRole) !== String(RoleEnum.admin)) {
+        throw new ForbiddenException(
+          'Only administrators can update core ingredients',
+        );
+      }
+    } else {
+      // Check restaurant access for non-core ingredients
+      const hasAccess = await this.restaurantsService.checkUserRestaurantAccess(
+        userId,
+        ingredient.restaurantId,
+        userRole,
+      );
+      if (!hasAccess) {
+        throw new ForbiddenException(
+          'You do not have access to update this ingredient',
+        );
+      }
+    }
+
+    // Prevent changing the restaurant ID
+    if (
+      updateIngredientDto.restaurantId &&
+      updateIngredientDto.restaurantId !== ingredient.restaurantId
+    ) {
+      throw new ForbiddenException(
+        'Cannot change the restaurant of an existing ingredient',
+      );
+    }
+
+    const updatedIngredient = await this.ingredientModel
+      .findOneAndUpdate({ ingredientId }, updateIngredientDto, { new: true })
+      .exec();
+
+    if (!updatedIngredient) {
+      throw new NotFoundException(
+        `Ingredient with ID "${ingredientId}" not found after update`,
+      );
+    }
+
+    // Get derived allergies and sub-ingredient details
+    const derivedAllergies = await this.getAllDerivedAllergies(
+      updatedIngredient.ingredientId,
+    );
+    const subIngredientDetails = await this.getSubIngredientDetails(
+      updatedIngredient.ingredientId,
+    );
+
+    const ingredientObj = updatedIngredient.toJSON();
+    return {
+      ...ingredientObj,
+      derivedAllergies: derivedAllergies.filter(
+        (allergyId) =>
+          !updatedIngredient.ingredientAllergies.includes(allergyId),
+      ),
+      subIngredientDetails,
+      isCoreIngredient: updatedIngredient.restaurantId === CORE_RESTAURANT_ID,
+    };
+  }
+
   async remove(id: string, userId: string, userRole: string) {
     const ingredient = await this.ingredientModel.findById(id).exec();
     if (!ingredient) {
@@ -434,7 +510,7 @@ export class IngredientsService {
 
     // Prevent deleting core ingredients unless admin
     if (ingredient.restaurantId === CORE_RESTAURANT_ID) {
-      if (userRole !== RoleEnum[RoleEnum.admin].toString()) {
+      if (String(userRole) !== String(RoleEnum.admin)) {
         throw new ForbiddenException(
           'Only administrators can delete core ingredients',
         );
@@ -454,6 +530,44 @@ export class IngredientsService {
     }
 
     await this.ingredientModel.findByIdAndDelete(id).exec();
+  }
+
+  async removeByIngredientId(
+    ingredientId: string,
+    userId: string,
+    userRole: string,
+  ) {
+    const ingredient = await this.ingredientModel
+      .findOne({ ingredientId })
+      .exec();
+    if (!ingredient) {
+      throw new NotFoundException(
+        `Ingredient with ID "${ingredientId}" not found`,
+      );
+    }
+
+    // Prevent deleting core ingredients unless admin
+    if (ingredient.restaurantId === CORE_RESTAURANT_ID) {
+      if (String(userRole) !== String(RoleEnum.admin)) {
+        throw new ForbiddenException(
+          'Only administrators can delete core ingredients',
+        );
+      }
+    } else {
+      // Check restaurant access for non-core ingredients
+      const hasAccess = await this.restaurantsService.checkUserRestaurantAccess(
+        userId,
+        ingredient.restaurantId,
+        userRole,
+      );
+      if (!hasAccess) {
+        throw new ForbiddenException(
+          'You do not have access to delete this ingredient',
+        );
+      }
+    }
+
+    await this.ingredientModel.findOneAndDelete({ ingredientId }).exec();
   }
 
   /**

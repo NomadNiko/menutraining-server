@@ -98,7 +98,7 @@ export class RecipesService {
     // If restaurantId is provided, filter by it
     if (restaurantId) {
       // Check restaurant access if not an admin
-      if (userRole !== RoleEnum[RoleEnum.admin].toString()) {
+      if (String(userRole) !== String(RoleEnum.admin)) {
         const hasAccess =
           await this.restaurantsService.checkUserRestaurantAccess(
             userId,
@@ -114,7 +114,7 @@ export class RecipesService {
       filter.restaurantId = restaurantId;
     } else {
       // If no restaurantId provided, for non-admin users, only show recipes for restaurants they have access to
-      if (userRole !== RoleEnum[RoleEnum.admin].toString()) {
+      if (String(userRole) !== String(RoleEnum.admin)) {
         const user =
           await this.restaurantsService['usersService'].findById(userId);
         if (
@@ -162,7 +162,7 @@ export class RecipesService {
     }
 
     // Check restaurant access if not an admin
-    if (userRole !== RoleEnum[RoleEnum.admin].toString()) {
+    if (String(userRole) !== String(RoleEnum.admin)) {
       const hasAccess = await this.restaurantsService.checkUserRestaurantAccess(
         userId,
         recipe.restaurantId,
@@ -187,7 +187,7 @@ export class RecipesService {
     }
 
     // Check restaurant access if not an admin
-    if (userRole !== RoleEnum[RoleEnum.admin].toString()) {
+    if (String(userRole) !== String(RoleEnum.admin)) {
       const hasAccess = await this.restaurantsService.checkUserRestaurantAccess(
         userId,
         recipe.restaurantId,
@@ -256,6 +256,61 @@ export class RecipesService {
     return await this.enhanceRecipeWithIngredientDetails(updatedRecipe);
   }
 
+  async updateByRecipeId(
+    recipeId: string,
+    updateRecipeDto: UpdateRecipeDto,
+    userId: string,
+    userRole: string,
+  ): Promise<RecipeSchemaClass> {
+    const recipe = await this.recipeModel.findOne({ recipeId }).exec();
+    if (!recipe) {
+      throw new NotFoundException(`Recipe with ID "${recipeId}" not found`);
+    }
+
+    // Check restaurant access
+    const hasAccess = await this.restaurantsService.checkUserRestaurantAccess(
+      userId,
+      recipe.restaurantId,
+      userRole,
+    );
+    if (!hasAccess) {
+      throw new ForbiddenException(
+        'You do not have access to update this recipe',
+      );
+    }
+
+    // Prevent changing the restaurant ID
+    if (
+      updateRecipeDto.restaurantId &&
+      updateRecipeDto.restaurantId !== recipe.restaurantId
+    ) {
+      throw new ForbiddenException(
+        'Cannot change the restaurant of an existing recipe',
+      );
+    }
+
+    // Update step orders if needed
+    if (updateRecipeDto.recipeSteps && updateRecipeDto.recipeSteps.length > 0) {
+      updateRecipeDto.recipeSteps.forEach((step, index) => {
+        if (step.order === undefined) {
+          step.order = index;
+        }
+      });
+    }
+
+    const updatedRecipe = await this.recipeModel
+      .findOneAndUpdate({ recipeId }, updateRecipeDto, { new: true })
+      .exec();
+
+    if (!updatedRecipe) {
+      throw new NotFoundException(
+        `Recipe with ID "${recipeId}" not found after update`,
+      );
+    }
+
+    return await this.enhanceRecipeWithIngredientDetails(updatedRecipe);
+  }
+
   async remove(id: string, userId: string, userRole: string): Promise<void> {
     const recipe = await this.recipeModel.findById(id).exec();
     if (!recipe) {
@@ -275,6 +330,31 @@ export class RecipesService {
     }
 
     await this.recipeModel.findByIdAndDelete(id).exec();
+  }
+
+  async removeByRecipeId(
+    recipeId: string,
+    userId: string,
+    userRole: string,
+  ): Promise<void> {
+    const recipe = await this.recipeModel.findOne({ recipeId }).exec();
+    if (!recipe) {
+      throw new NotFoundException(`Recipe with ID "${recipeId}" not found`);
+    }
+
+    // Check restaurant access
+    const hasAccess = await this.restaurantsService.checkUserRestaurantAccess(
+      userId,
+      recipe.restaurantId,
+      userRole,
+    );
+    if (!hasAccess) {
+      throw new ForbiddenException(
+        'You do not have access to delete this recipe',
+      );
+    }
+
+    await this.recipeModel.findOneAndDelete({ recipeId }).exec();
   }
 
   /**

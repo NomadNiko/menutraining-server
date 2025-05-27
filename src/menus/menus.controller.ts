@@ -71,24 +71,7 @@ export class MenusController {
     return this.menusService.findAll(query, req.user.id, req.user.role.id);
   }
 
-  @Get(':id')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Get menu by ID' })
-  @ApiParam({ name: 'id', description: 'Menu ID (MongoDB ObjectId)' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Return the menu.',
-    type: MenuSchemaClass,
-  })
-  @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: 'Menu not found.',
-  })
-  findOne(@Param('id') id: string, @Request() req): Promise<MenuSchemaClass> {
-    return this.menusService.findOne(id, req.user.id, req.user.role.id);
-  }
-
-  @Get('code/:menuId')
+  @Get(':menuId')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get menu by menu ID (MNU-XXXXXX)' })
   @ApiParam({
@@ -104,10 +87,7 @@ export class MenusController {
     status: HttpStatus.NOT_FOUND,
     description: 'Menu not found.',
   })
-  findByMenuId(
-    @Param('menuId') menuId: string,
-    @Request() req,
-  ): Promise<MenuSchemaClass> {
+  findOne(@Param('menuId') menuId: string, @Request() req): Promise<MenuSchemaClass> {
     return this.menusService.findByMenuId(
       menuId,
       req.user.id,
@@ -115,10 +95,13 @@ export class MenusController {
     );
   }
 
-  @Patch(':id')
+  @Patch(':menuId')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update a menu' })
-  @ApiParam({ name: 'id', description: 'Menu ID (MongoDB ObjectId)' })
+  @ApiParam({
+    name: 'menuId',
+    description: 'Menu ID (MNU-XXXXXX pattern)',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'The menu has been successfully updated.',
@@ -129,22 +112,25 @@ export class MenusController {
     description: 'Menu not found.',
   })
   update(
-    @Param('id') id: string,
+    @Param('menuId') menuId: string,
     @Body() updateMenuDto: UpdateMenuDto,
     @Request() req,
   ): Promise<MenuSchemaClass> {
-    return this.menusService.update(
-      id,
+    return this.menusService.updateByMenuId(
+      menuId,
       updateMenuDto,
       req.user.id,
       req.user.role.id,
     );
   }
 
-  @Delete(':id')
+  @Delete(':menuId')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a menu' })
-  @ApiParam({ name: 'id', description: 'Menu ID (MongoDB ObjectId)' })
+  @ApiParam({
+    name: 'menuId',
+    description: 'Menu ID (MNU-XXXXXX pattern)',
+  })
   @ApiResponse({
     status: HttpStatus.NO_CONTENT,
     description: 'The menu has been successfully deleted.',
@@ -153,7 +139,11 @@ export class MenusController {
     status: HttpStatus.NOT_FOUND,
     description: 'Menu not found.',
   })
-  remove(@Param('id') id: string, @Request() req): Promise<void> {
-    return this.menusService.remove(id, req.user.id, req.user.role.id);
+  remove(@Param('menuId') menuId: string, @Request() req): Promise<void> {
+    return this.menusService.removeByMenuId(
+      menuId,
+      req.user.id,
+      req.user.role.id,
+    );
   }
 }

@@ -70,7 +70,7 @@ export class MenuItemsService {
     // If restaurantId is provided, filter by it
     if (restaurantId) {
       // Check restaurant access if not an admin
-      if (userRole !== RoleEnum[RoleEnum.admin].toString()) {
+      if (String(userRole) !== String(RoleEnum.admin)) {
         const hasAccess =
           await this.restaurantsService.checkUserRestaurantAccess(
             userId,
@@ -86,7 +86,7 @@ export class MenuItemsService {
       filter.restaurantId = restaurantId;
     } else {
       // If no restaurantId provided, for non-admin users, only show menu items for restaurants they have access to
-      if (userRole !== RoleEnum[RoleEnum.admin].toString()) {
+      if (String(userRole) !== String(RoleEnum.admin)) {
         const user =
           await this.restaurantsService['usersService'].findById(userId);
         if (
@@ -117,7 +117,7 @@ export class MenuItemsService {
     }
 
     // Check restaurant access if not an admin
-    if (userRole !== RoleEnum[RoleEnum.admin].toString()) {
+    if (String(userRole) !== String(RoleEnum.admin)) {
       const hasAccess = await this.restaurantsService.checkUserRestaurantAccess(
         userId,
         menuItem.restaurantId,
@@ -144,7 +144,7 @@ export class MenuItemsService {
     }
 
     // Check restaurant access if not an admin
-    if (userRole !== RoleEnum[RoleEnum.admin].toString()) {
+    if (String(userRole) !== String(RoleEnum.admin)) {
       const hasAccess = await this.restaurantsService.checkUserRestaurantAccess(
         userId,
         menuItem.restaurantId,
@@ -210,6 +210,54 @@ export class MenuItemsService {
     return enhancedItems[0];
   }
 
+  async updateByMenuItemId(
+    menuItemId: string,
+    updateMenuItemDto: UpdateMenuItemDto,
+    userId: string,
+    userRole: string,
+  ) {
+    const menuItem = await this.menuItemModel.findOne({ menuItemId }).exec();
+    if (!menuItem) {
+      throw new NotFoundException(`Menu item with ID "${menuItemId}" not found`);
+    }
+
+    // Check restaurant access
+    const hasAccess = await this.restaurantsService.checkUserRestaurantAccess(
+      userId,
+      menuItem.restaurantId,
+      userRole,
+    );
+    if (!hasAccess) {
+      throw new ForbiddenException(
+        'You do not have access to update this menu item',
+      );
+    }
+
+    // Prevent changing the restaurant ID
+    if (
+      updateMenuItemDto.restaurantId &&
+      updateMenuItemDto.restaurantId !== menuItem.restaurantId
+    ) {
+      throw new ForbiddenException(
+        'Cannot change the restaurant of an existing menu item',
+      );
+    }
+
+    const updatedMenuItem = await this.menuItemModel
+      .findOneAndUpdate({ menuItemId }, updateMenuItemDto, { new: true })
+      .exec();
+
+    if (!updatedMenuItem) {
+      throw new NotFoundException(
+        `Menu item with ID "${menuItemId}" not found after update`,
+      );
+    }
+
+    // Enhance the updated menu item with ingredient names and allergies
+    const enhancedItems = await this.enhanceMenuItems([updatedMenuItem]);
+    return enhancedItems[0];
+  }
+
   async remove(id: string, userId: string, userRole: string) {
     const menuItem = await this.menuItemModel.findById(id).exec();
     if (!menuItem) {
@@ -229,6 +277,31 @@ export class MenuItemsService {
     }
 
     await this.menuItemModel.findByIdAndDelete(id).exec();
+  }
+
+  async removeByMenuItemId(
+    menuItemId: string,
+    userId: string,
+    userRole: string,
+  ) {
+    const menuItem = await this.menuItemModel.findOne({ menuItemId }).exec();
+    if (!menuItem) {
+      throw new NotFoundException(`Menu item with ID "${menuItemId}" not found`);
+    }
+
+    // Check restaurant access
+    const hasAccess = await this.restaurantsService.checkUserRestaurantAccess(
+      userId,
+      menuItem.restaurantId,
+      userRole,
+    );
+    if (!hasAccess) {
+      throw new ForbiddenException(
+        'You do not have access to delete this menu item',
+      );
+    }
+
+    await this.menuItemModel.findOneAndDelete({ menuItemId }).exec();
   }
 
   // Enhanced method to provide detailed information about menu items

@@ -71,24 +71,7 @@ export class EquipmentController {
     return this.equipmentService.findAll(query);
   }
 
-  @Get(':id')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Get equipment by ID' })
-  @ApiParam({ name: 'id', description: 'Equipment ID (MongoDB ObjectId)' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Return the equipment.',
-    type: EquipmentSchemaClass,
-  })
-  @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: 'Equipment not found.',
-  })
-  findOne(@Param('id') id: string): Promise<EquipmentSchemaClass> {
-    return this.equipmentService.findOne(id);
-  }
-
-  @Get('code/:equipmentId')
+  @Get(':equipmentId')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get equipment by equipment ID (EQP-XXXXXX)' })
   @ApiParam({
@@ -104,18 +87,19 @@ export class EquipmentController {
     status: HttpStatus.NOT_FOUND,
     description: 'Equipment not found.',
   })
-  findByEquipmentId(
-    @Param('equipmentId') equipmentId: string,
-  ): Promise<EquipmentSchemaClass> {
+  findOne(@Param('equipmentId') equipmentId: string): Promise<EquipmentSchemaClass> {
     return this.equipmentService.findByEquipmentId(equipmentId);
   }
 
-  @Patch(':id')
+  @Patch(':equipmentId')
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update an equipment' })
-  @ApiParam({ name: 'id', description: 'Equipment ID (MongoDB ObjectId)' })
+  @ApiParam({
+    name: 'equipmentId',
+    description: 'Equipment ID (EQP-XXXXXX pattern)',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'The equipment has been successfully updated.',
@@ -126,24 +110,27 @@ export class EquipmentController {
     description: 'Equipment not found.',
   })
   update(
-    @Param('id') id: string,
+    @Param('equipmentId') equipmentId: string,
     @Body() updateEquipmentDto: UpdateEquipmentDto,
     @Request() req,
   ): Promise<EquipmentSchemaClass> {
-    return this.equipmentService.update(
-      id,
+    return this.equipmentService.updateByEquipmentId(
+      equipmentId,
       updateEquipmentDto,
       req.user.id,
       req.user.role.id,
     );
   }
 
-  @Delete(':id')
+  @Delete(':equipmentId')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete an equipment' })
-  @ApiParam({ name: 'id', description: 'Equipment ID (MongoDB ObjectId)' })
+  @ApiParam({
+    name: 'equipmentId',
+    description: 'Equipment ID (EQP-XXXXXX pattern)',
+  })
   @ApiResponse({
     status: HttpStatus.NO_CONTENT,
     description: 'The equipment has been successfully deleted.',
@@ -152,7 +139,11 @@ export class EquipmentController {
     status: HttpStatus.NOT_FOUND,
     description: 'Equipment not found.',
   })
-  remove(@Param('id') id: string, @Request() req): Promise<void> {
-    return this.equipmentService.remove(id, req.user.id, req.user.role.id);
+  remove(@Param('equipmentId') equipmentId: string, @Request() req): Promise<void> {
+    return this.equipmentService.removeByEquipmentId(
+      equipmentId,
+      req.user.id,
+      req.user.role.id,
+    );
   }
 }

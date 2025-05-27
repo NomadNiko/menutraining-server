@@ -51,29 +51,12 @@ export class AllergiesController {
     return this.allergiesService.findAll(query);
   }
 
-  @Get(':id')
+  @Get(':allergyId')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Get allergy by ID' })
-  @ApiParam({ name: 'id', description: 'Allergy ID (MongoDB ObjectId)' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Return the allergy.',
-    type: AllergySchemaClass,
-  })
-  @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: 'Allergy not found.',
-  })
-  findOne(@Param('id') id: string): Promise<AllergySchemaClass> {
-    return this.allergiesService.findOne(id);
-  }
-
-  @Get('code/:allergyId')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Get allergy by allergy ID (ALG-XXXXXX)' })
+  @ApiOperation({ summary: 'Get allergy by allergy ID (ALL-XXXXXX)' })
   @ApiParam({
     name: 'allergyId',
-    description: 'Allergy ID (ALG-XXXXXX pattern)',
+    description: 'Allergy ID (ALL-XXXXXX pattern)',
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -84,16 +67,17 @@ export class AllergiesController {
     status: HttpStatus.NOT_FOUND,
     description: 'Allergy not found.',
   })
-  findByAllergyId(
-    @Param('allergyId') allergyId: string,
-  ): Promise<AllergySchemaClass> {
+  findOne(@Param('allergyId') allergyId: string): Promise<AllergySchemaClass> {
     return this.allergiesService.findByAllergyId(allergyId);
   }
 
-  @Patch(':id')
+  @Patch(':allergyId')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update an allergy' })
-  @ApiParam({ name: 'id', description: 'Allergy ID (MongoDB ObjectId)' })
+  @ApiParam({
+    name: 'allergyId',
+    description: 'Allergy ID (ALL-XXXXXX pattern)',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'The allergy has been successfully updated.',
@@ -104,16 +88,19 @@ export class AllergiesController {
     description: 'Allergy not found.',
   })
   update(
-    @Param('id') id: string,
+    @Param('allergyId') allergyId: string,
     @Body() updateAllergyDto: UpdateAllergyDto,
   ): Promise<AllergySchemaClass> {
-    return this.allergiesService.update(id, updateAllergyDto);
+    return this.allergiesService.updateByAllergyId(allergyId, updateAllergyDto);
   }
 
-  @Delete(':id')
+  @Delete(':allergyId')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete an allergy' })
-  @ApiParam({ name: 'id', description: 'Allergy ID (MongoDB ObjectId)' })
+  @ApiParam({
+    name: 'allergyId',
+    description: 'Allergy ID (ALL-XXXXXX pattern)',
+  })
   @ApiResponse({
     status: HttpStatus.NO_CONTENT,
     description: 'The allergy has been successfully deleted.',
@@ -122,7 +109,7 @@ export class AllergiesController {
     status: HttpStatus.NOT_FOUND,
     description: 'Allergy not found.',
   })
-  remove(@Param('id') id: string): Promise<void> {
-    return this.allergiesService.remove(id);
+  remove(@Param('allergyId') allergyId: string): Promise<void> {
+    return this.allergiesService.removeByAllergyId(allergyId);
   }
 }

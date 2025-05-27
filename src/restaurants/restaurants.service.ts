@@ -102,12 +102,64 @@ export class RestaurantsService {
     return updatedRestaurant.toJSON();
   }
 
+  async updateByRestaurantId(
+    restaurantId: string,
+    updateRestaurantDto: UpdateRestaurantDto,
+    userId: string,
+    userRole: string,
+  ) {
+    const restaurant = await this.restaurantModel
+      .findOne({ restaurantId })
+      .exec();
+    if (!restaurant) {
+      throw new NotFoundException(
+        `Restaurant with ID "${restaurantId}" not found`,
+      );
+    }
+    // Check restaurant access
+    const hasAccess = await this.checkUserRestaurantAccess(
+      userId,
+      restaurantId,
+      userRole,
+    );
+    if (!hasAccess) {
+      throw new ForbiddenException(
+        'You do not have access to update this restaurant',
+      );
+    }
+    const updatedRestaurant = await this.restaurantModel
+      .findOneAndUpdate({ restaurantId }, updateRestaurantDto, { new: true })
+      .exec();
+    if (!updatedRestaurant) {
+      throw new NotFoundException(
+        `Restaurant with ID "${restaurantId}" not found after update`,
+      );
+    }
+    return updatedRestaurant.toJSON();
+  }
+
   async remove(id: string, userId: string, userRole: string) {
     const restaurant = await this.restaurantModel.findById(id).exec();
     if (!restaurant) {
       throw new NotFoundException(`Restaurant with ID "${id}" not found`);
     }
     await this.restaurantModel.findByIdAndDelete(id).exec();
+  }
+
+  async removeByRestaurantId(
+    restaurantId: string,
+    userId: string,
+    userRole: string,
+  ) {
+    const restaurant = await this.restaurantModel
+      .findOne({ restaurantId })
+      .exec();
+    if (!restaurant) {
+      throw new NotFoundException(
+        `Restaurant with ID "${restaurantId}" not found`,
+      );
+    }
+    await this.restaurantModel.findOneAndDelete({ restaurantId }).exec();
   }
 
   async addUserToRestaurant(
@@ -194,7 +246,7 @@ export class RestaurantsService {
     userRole: string,
   ) {
     // Admins always have access
-    if (userRole === RoleEnum[RoleEnum.admin].toString()) {
+    if (String(userRole) === String(RoleEnum.admin)) {
       return true;
     }
     const restaurant = await this.restaurantModel

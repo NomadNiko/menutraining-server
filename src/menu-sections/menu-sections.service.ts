@@ -70,7 +70,7 @@ export class MenuSectionsService {
     // If restaurantId is provided, filter by it
     if (restaurantId) {
       // Check restaurant access if not an admin
-      if (userRole !== RoleEnum[RoleEnum.admin].toString()) {
+      if (String(userRole) !== String(RoleEnum.admin)) {
         const hasAccess =
           await this.restaurantsService.checkUserRestaurantAccess(
             userId,
@@ -88,7 +88,7 @@ export class MenuSectionsService {
       filter.restaurantId = restaurantId;
     } else {
       // If no restaurantId provided, for non-admin users, only show menu sections for restaurants they have access to
-      if (userRole !== RoleEnum[RoleEnum.admin].toString()) {
+      if (String(userRole) !== String(RoleEnum.admin)) {
         const user =
           await this.restaurantsService['usersService'].findById(userId);
 
@@ -121,7 +121,7 @@ export class MenuSectionsService {
     }
 
     // Check restaurant access if not an admin
-    if (userRole !== RoleEnum[RoleEnum.admin].toString()) {
+    if (String(userRole) !== String(RoleEnum.admin)) {
       const hasAccess = await this.restaurantsService.checkUserRestaurantAccess(
         userId,
         menuSection.restaurantId,
@@ -154,7 +154,7 @@ export class MenuSectionsService {
     }
 
     // Check restaurant access if not an admin
-    if (userRole !== RoleEnum[RoleEnum.admin].toString()) {
+    if (String(userRole) !== String(RoleEnum.admin)) {
       const hasAccess = await this.restaurantsService.checkUserRestaurantAccess(
         userId,
         menuSection.restaurantId,
@@ -228,6 +228,67 @@ export class MenuSectionsService {
     return updatedMenuSection.toJSON();
   }
 
+  async updateByMenuSectionId(
+    menuSectionId: string,
+    updateMenuSectionDto: UpdateMenuSectionDto,
+    userId: string,
+    userRole: string,
+  ): Promise<MenuSectionSchemaClass> {
+    const menuSection = await this.menuSectionModel
+      .findOne({ menuSectionId })
+      .exec();
+
+    if (!menuSection) {
+      throw new NotFoundException(
+        `Menu section with ID "${menuSectionId}" not found`,
+      );
+    }
+
+    // Check restaurant access
+    const hasAccess = await this.restaurantsService.checkUserRestaurantAccess(
+      userId,
+      menuSection.restaurantId,
+      userRole,
+    );
+
+    if (!hasAccess) {
+      throw new ForbiddenException(
+        'You do not have access to update this menu section',
+      );
+    }
+
+    // Prevent changing the restaurant ID
+    if (
+      updateMenuSectionDto.restaurantId &&
+      updateMenuSectionDto.restaurantId !== menuSection.restaurantId
+    ) {
+      throw new ForbiddenException(
+        'Cannot change the restaurant of an existing menu section',
+      );
+    }
+
+    // If updating items, ensure the order is set for any new items
+    if (updateMenuSectionDto.items && updateMenuSectionDto.items.length > 0) {
+      updateMenuSectionDto.items.forEach((item, index) => {
+        if (item.order === undefined) {
+          item.order = index;
+        }
+      });
+    }
+
+    const updatedMenuSection = await this.menuSectionModel
+      .findOneAndUpdate({ menuSectionId }, updateMenuSectionDto, { new: true })
+      .exec();
+
+    if (!updatedMenuSection) {
+      throw new NotFoundException(
+        `Menu section with ID "${menuSectionId}" not found after update`,
+      );
+    }
+
+    return updatedMenuSection.toJSON();
+  }
+
   async remove(id: string, userId: string, userRole: string) {
     const menuSection = await this.menuSectionModel.findById(id).exec();
 
@@ -249,6 +310,37 @@ export class MenuSectionsService {
     }
 
     await this.menuSectionModel.findByIdAndDelete(id).exec();
+  }
+
+  async removeByMenuSectionId(
+    menuSectionId: string,
+    userId: string,
+    userRole: string,
+  ) {
+    const menuSection = await this.menuSectionModel
+      .findOne({ menuSectionId })
+      .exec();
+
+    if (!menuSection) {
+      throw new NotFoundException(
+        `Menu section with ID "${menuSectionId}" not found`,
+      );
+    }
+
+    // Check restaurant access
+    const hasAccess = await this.restaurantsService.checkUserRestaurantAccess(
+      userId,
+      menuSection.restaurantId,
+      userRole,
+    );
+
+    if (!hasAccess) {
+      throw new ForbiddenException(
+        'You do not have access to delete this menu section',
+      );
+    }
+
+    await this.menuSectionModel.findOneAndDelete({ menuSectionId }).exec();
   }
 
   private async generateMenuSectionId(): Promise<string> {

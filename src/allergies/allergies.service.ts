@@ -64,10 +64,27 @@ export class AllergiesService {
     return updatedAllergy.toJSON();
   }
 
+  async updateByAllergyId(allergyId: string, updateAllergyDto: UpdateAllergyDto) {
+    const updatedAllergy = await this.allergyModel
+      .findOneAndUpdate({ allergyId }, updateAllergyDto, { new: true })
+      .exec();
+    if (!updatedAllergy) {
+      throw new NotFoundException(`Allergy with ID "${allergyId}" not found`);
+    }
+    return updatedAllergy.toJSON();
+  }
+
   async remove(id: string) {
     const result = await this.allergyModel.findByIdAndDelete(id).exec();
     if (!result) {
       throw new NotFoundException(`Allergy with ID "${id}" not found`);
+    }
+  }
+
+  async removeByAllergyId(allergyId: string) {
+    const result = await this.allergyModel.findOneAndDelete({ allergyId }).exec();
+    if (!result) {
+      throw new NotFoundException(`Allergy with ID "${allergyId}" not found`);
     }
   }
 

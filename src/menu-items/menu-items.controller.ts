@@ -59,32 +59,19 @@ export class MenuItemsController {
     return this.menuItemsService.findAll(query, req.user.id, req.user.role.id);
   }
 
-  @Get(':id')
+  @Get(':menuItemId')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Get menu item by ID' })
-  @ApiParam({ name: 'id', description: 'Menu Item ID (MongoDB ObjectId)' })
-  @ApiResponse({ status: HttpStatus.OK, description: 'Return the menu item.' })
-  @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: 'Menu item not found.',
-  })
-  findOne(@Param('id') id: string, @Request() req) {
-    return this.menuItemsService.findOne(id, req.user.id, req.user.role.id);
-  }
-
-  @Get('code/:menuItemId')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Get menu item by menu item ID (MID-XXXXXX)' })
+  @ApiOperation({ summary: 'Get menu item by menu item ID (ITM-XXXXXX)' })
   @ApiParam({
     name: 'menuItemId',
-    description: 'Menu Item ID (MID-XXXXXX pattern)',
+    description: 'Menu Item ID (ITM-XXXXXX pattern)',
   })
   @ApiResponse({ status: HttpStatus.OK, description: 'Return the menu item.' })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
     description: 'Menu item not found.',
   })
-  findByMenuItemId(@Param('menuItemId') menuItemId: string, @Request() req) {
+  findOne(@Param('menuItemId') menuItemId: string, @Request() req) {
     return this.menuItemsService.findByMenuItemId(
       menuItemId,
       req.user.id,
@@ -92,10 +79,13 @@ export class MenuItemsController {
     );
   }
 
-  @Patch(':id')
+  @Patch(':menuItemId')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update a menu item' })
-  @ApiParam({ name: 'id', description: 'Menu Item ID (MongoDB ObjectId)' })
+  @ApiParam({
+    name: 'menuItemId',
+    description: 'Menu Item ID (ITM-XXXXXX pattern)',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'The menu item has been successfully updated.',
@@ -105,22 +95,25 @@ export class MenuItemsController {
     description: 'Menu item not found.',
   })
   update(
-    @Param('id') id: string,
+    @Param('menuItemId') menuItemId: string,
     @Body() updateMenuItemDto: UpdateMenuItemDto,
     @Request() req,
   ) {
-    return this.menuItemsService.update(
-      id,
+    return this.menuItemsService.updateByMenuItemId(
+      menuItemId,
       updateMenuItemDto,
       req.user.id,
       req.user.role.id,
     );
   }
 
-  @Delete(':id')
+  @Delete(':menuItemId')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a menu item' })
-  @ApiParam({ name: 'id', description: 'Menu Item ID (MongoDB ObjectId)' })
+  @ApiParam({
+    name: 'menuItemId',
+    description: 'Menu Item ID (ITM-XXXXXX pattern)',
+  })
   @ApiResponse({
     status: HttpStatus.NO_CONTENT,
     description: 'The menu item has been successfully deleted.',
@@ -129,7 +122,11 @@ export class MenuItemsController {
     status: HttpStatus.NOT_FOUND,
     description: 'Menu item not found.',
   })
-  remove(@Param('id') id: string, @Request() req) {
-    return this.menuItemsService.remove(id, req.user.id, req.user.role.id);
+  remove(@Param('menuItemId') menuItemId: string, @Request() req) {
+    return this.menuItemsService.removeByMenuItemId(
+      menuItemId,
+      req.user.id,
+      req.user.role.id,
+    );
   }
 }

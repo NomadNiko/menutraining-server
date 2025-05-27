@@ -71,29 +71,12 @@ export class RecipesController {
     return this.recipesService.findAll(query, req.user.id, req.user.role.id);
   }
 
-  @Get(':id')
+  @Get(':recipeId')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Get recipe by ID' })
-  @ApiParam({ name: 'id', description: 'Recipe ID (MongoDB ObjectId)' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Return the recipe.',
-    type: RecipeSchemaClass,
-  })
-  @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: 'Recipe not found.',
-  })
-  findOne(@Param('id') id: string, @Request() req): Promise<RecipeSchemaClass> {
-    return this.recipesService.findOne(id, req.user.id, req.user.role.id);
-  }
-
-  @Get('code/:recipeId')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Get recipe by recipe ID (RCP-XXXXXX)' })
+  @ApiOperation({ summary: 'Get recipe by recipe ID (REC-XXXXXX)' })
   @ApiParam({
     name: 'recipeId',
-    description: 'Recipe ID (RCP-XXXXXX pattern)',
+    description: 'Recipe ID (REC-XXXXXX pattern)',
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -104,10 +87,7 @@ export class RecipesController {
     status: HttpStatus.NOT_FOUND,
     description: 'Recipe not found.',
   })
-  findByRecipeId(
-    @Param('recipeId') recipeId: string,
-    @Request() req,
-  ): Promise<RecipeSchemaClass> {
+  findOne(@Param('recipeId') recipeId: string, @Request() req): Promise<RecipeSchemaClass> {
     return this.recipesService.findByRecipeId(
       recipeId,
       req.user.id,
@@ -115,10 +95,13 @@ export class RecipesController {
     );
   }
 
-  @Patch(':id')
+  @Patch(':recipeId')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update a recipe' })
-  @ApiParam({ name: 'id', description: 'Recipe ID (MongoDB ObjectId)' })
+  @ApiParam({
+    name: 'recipeId',
+    description: 'Recipe ID (REC-XXXXXX pattern)',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'The recipe has been successfully updated.',
@@ -129,22 +112,25 @@ export class RecipesController {
     description: 'Recipe not found.',
   })
   update(
-    @Param('id') id: string,
+    @Param('recipeId') recipeId: string,
     @Body() updateRecipeDto: UpdateRecipeDto,
     @Request() req,
   ): Promise<RecipeSchemaClass> {
-    return this.recipesService.update(
-      id,
+    return this.recipesService.updateByRecipeId(
+      recipeId,
       updateRecipeDto,
       req.user.id,
       req.user.role.id,
     );
   }
 
-  @Delete(':id')
+  @Delete(':recipeId')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a recipe' })
-  @ApiParam({ name: 'id', description: 'Recipe ID (MongoDB ObjectId)' })
+  @ApiParam({
+    name: 'recipeId',
+    description: 'Recipe ID (REC-XXXXXX pattern)',
+  })
   @ApiResponse({
     status: HttpStatus.NO_CONTENT,
     description: 'The recipe has been successfully deleted.',
@@ -153,7 +139,11 @@ export class RecipesController {
     status: HttpStatus.NOT_FOUND,
     description: 'Recipe not found.',
   })
-  remove(@Param('id') id: string, @Request() req): Promise<void> {
-    return this.recipesService.remove(id, req.user.id, req.user.role.id);
+  remove(@Param('recipeId') recipeId: string, @Request() req): Promise<void> {
+    return this.recipesService.removeByRecipeId(
+      recipeId,
+      req.user.id,
+      req.user.role.id,
+    );
   }
 }

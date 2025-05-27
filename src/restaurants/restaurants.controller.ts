@@ -73,29 +73,12 @@ export class RestaurantsController {
     );
   }
 
-  @Get(':id')
+  @Get(':restaurantId')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Get restaurant by ID' })
-  @ApiParam({ name: 'id', description: 'Restaurant ID (MongoDB ObjectId)' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Return the restaurant.',
-    type: RestaurantSchemaClass,
-  })
-  @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: 'Restaurant not found.',
-  })
-  findOne(@Param('id') id: string) {
-    return this.restaurantsService.findOne(id);
-  }
-
-  @Get('code/:restaurantId')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Get restaurant by restaurant ID (RST-XXXXXX)' })
+  @ApiOperation({ summary: 'Get restaurant by restaurant ID (RES-XXXXXX)' })
   @ApiParam({
     name: 'restaurantId',
-    description: 'Restaurant ID (RST-XXXXXX pattern)',
+    description: 'Restaurant ID (RES-XXXXXX pattern)',
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -106,14 +89,17 @@ export class RestaurantsController {
     status: HttpStatus.NOT_FOUND,
     description: 'Restaurant not found.',
   })
-  findByRestaurantId(@Param('restaurantId') restaurantId: string) {
+  findOne(@Param('restaurantId') restaurantId: string) {
     return this.restaurantsService.findByRestaurantId(restaurantId);
   }
 
-  @Patch(':id')
+  @Patch(':restaurantId')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update a restaurant' })
-  @ApiParam({ name: 'id', description: 'Restaurant ID (MongoDB ObjectId)' })
+  @ApiParam({
+    name: 'restaurantId',
+    description: 'Restaurant ID (RES-XXXXXX pattern)',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'The restaurant has been successfully updated.',
@@ -124,24 +110,27 @@ export class RestaurantsController {
     description: 'Restaurant not found.',
   })
   update(
-    @Param('id') id: string,
+    @Param('restaurantId') restaurantId: string,
     @Body() updateRestaurantDto: UpdateRestaurantDto,
     @Request() req,
   ) {
-    return this.restaurantsService.update(
-      id,
+    return this.restaurantsService.updateByRestaurantId(
+      restaurantId,
       updateRestaurantDto,
       req.user.id,
       req.user.role.id,
     );
   }
 
-  @Delete(':id')
+  @Delete(':restaurantId')
   @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(RoleEnum.admin)
   @UseGuards(RolesGuard)
   @ApiOperation({ summary: 'Delete a restaurant' })
-  @ApiParam({ name: 'id', description: 'Restaurant ID (MongoDB ObjectId)' })
+  @ApiParam({
+    name: 'restaurantId',
+    description: 'Restaurant ID (RES-XXXXXX pattern)',
+  })
   @ApiResponse({
     status: HttpStatus.NO_CONTENT,
     description: 'The restaurant has been successfully deleted.',
@@ -150,8 +139,12 @@ export class RestaurantsController {
     status: HttpStatus.NOT_FOUND,
     description: 'Restaurant not found.',
   })
-  remove(@Param('id') id: string, @Request() req) {
-    return this.restaurantsService.remove(id, req.user.id, req.user.role.id);
+  remove(@Param('restaurantId') restaurantId: string, @Request() req) {
+    return this.restaurantsService.removeByRestaurantId(
+      restaurantId,
+      req.user.id,
+      req.user.role.id,
+    );
   }
 
   @Post(':restaurantId/users')
